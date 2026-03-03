@@ -18,7 +18,7 @@ export default function DashboardPage() {
   const { inventory, accounts, cashFlow, movements, ready } = useAppData();
 
   if (!ready) {
-    return <p className="rounded-2xl border border-blue-900 bg-zinc-950 p-6 text-sm text-blue-100">Carregando...</p>;
+    return <p className="rounded-2xl border border-blue-900 bg-zinc-700 p-6 text-sm text-blue-100">Carregando...</p>;
   }
 
   const totalEstoque = inventory.reduce((sum, item) => sum + item.estoqueAtual * item.custoUnitario, 0);
@@ -66,32 +66,32 @@ export default function DashboardPage() {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardContent className="min-h-28 p-5">
-          <div className="mb-4 h-1.5 w-10 rounded-full bg-blue-400/90" />
-          <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Estoque total</p>
-          <p className="mt-2 text-4xl font-bold leading-none text-blue-50">{moneyFormatter.format(totalEstoque)}</p>
+            <div className="mb-4 h-1.5 w-10 rounded-full bg-blue-400/90" />
+            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Estoque total</p>
+            <p className="mt-2 text-4xl font-bold leading-none text-blue-50">{moneyFormatter.format(totalEstoque)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="min-h-28 p-5">
-          <div className="mb-4 h-1.5 w-10 rounded-full bg-yellow-400/90" />
-          <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Itens em alerta</p>
-          <p className="mt-2 text-4xl font-bold leading-none text-yellow-300">{itensAlerta}</p>
+            <div className="mb-4 h-1.5 w-10 rounded-full bg-yellow-400/90" />
+            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Itens em alerta</p>
+            <p className="mt-2 text-4xl font-bold leading-none text-yellow-300">{itensAlerta}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="min-h-28 p-5">
-          <div className="mb-4 h-1.5 w-10 rounded-full bg-yellow-400/90" />
-          <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Contas a pagar</p>
-          <p className="mt-2 text-4xl font-bold leading-none text-yellow-300">{moneyFormatter.format(contasPagar)}</p>
+            <div className="mb-4 h-1.5 w-10 rounded-full bg-yellow-400/90" />
+            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Contas a pagar</p>
+            <p className="mt-2 text-4xl font-bold leading-none text-yellow-300">{moneyFormatter.format(contasPagar)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="min-h-28 p-5">
-          <div className="mb-4 h-1.5 w-10 rounded-full bg-blue-400/90" />
-          <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Saldo operacional</p>
-          <p className={`mt-2 text-4xl font-bold leading-none ${saldo >= 0 ? "text-blue-300" : "text-yellow-300"}`}>
-            {moneyFormatter.format(saldo)}
-          </p>
+            <div className="mb-4 h-1.5 w-10 rounded-full bg-blue-400/90" />
+            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Saldo operacional</p>
+            <p className={`mt-2 text-4xl font-bold leading-none ${saldo >= 0 ? "text-blue-300" : "text-yellow-300"}`}>
+              {moneyFormatter.format(saldo)}
+            </p>
           </CardContent>
         </Card>
       </section>
@@ -104,67 +104,69 @@ export default function DashboardPage() {
       <section className="grid gap-4 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardContent className="p-6 md:p-7">
-          <div className="mb-5 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-yellow-300">Contas a pagar e receber</h3>
-            <p className="text-sm text-blue-100/80">Receber: {moneyFormatter.format(contasReceber)}</p>
-          </div>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-blue-900/60 text-blue-200">
-                  <TableHead>Descricao</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Parceiro</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead className="pr-0">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {accounts.map((account) => (
-                  <TableRow key={account.id}>
-                    <TableCell>{account.descricao}</TableCell>
-                    <TableCell className="font-medium">{account.tipo}</TableCell>
-                    <TableCell>{account.parceiro}</TableCell>
-                    <TableCell>{dateFormatter.format(new Date(account.vencimento))}</TableCell>
-                    <TableCell>{moneyFormatter.format(account.valor)}</TableCell>
-                    <TableCell className="pr-0">
-                      <Badge variant={statusBadge(account.status) as "success" | "warning" | "danger"}>
-                        {account.status}
-                      </Badge>
-                    </TableCell>
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-yellow-300">Contas a pagar e receber</h3>
+              <p className="text-sm text-blue-100/80">Receber: {moneyFormatter.format(contasReceber)}</p>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-blue-900/60 text-blue-200">
+                    <TableHead>Descricao</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Parceiro</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead className="pr-0">Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {accounts.map((account) => (
+                    <TableRow key={account.id}>
+                      <TableCell>{account.descricao}</TableCell>
+                      <TableCell className="font-medium">{account.tipo}</TableCell>
+                      <TableCell>{account.parceiro}</TableCell>
+                      <TableCell>{dateFormatter.format(new Date(account.vencimento))}</TableCell>
+                      <TableCell>{moneyFormatter.format(account.valor)}</TableCell>
+                      <TableCell className="pr-0">
+                        <Badge variant={statusBadge(account.status) as "success" | "warning" | "danger"}>
+                          {account.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-6 md:p-7">
-          <h3 className="text-lg font-semibold text-yellow-300">Ultimas movimentacoes</h3>
-          <ul className="mt-5 space-y-3">
-            {movements.slice(0, 5).map((movement) => {
-              const item = inventory.find((entry) => entry.id === movement.itemId);
-              return (
-                <li key={movement.id} className="rounded-xl border border-blue-900/60 bg-zinc-900/50 p-3">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium">{item?.nome ?? "Item removido"}</p>
-                    <p className={movement.tipo === "entrada" ? "text-blue-300" : "text-yellow-300"}>
-                      {movement.tipo}
+            <h3 className="text-lg font-semibold text-yellow-300">Ultimas movimentacoes</h3>
+            <ul className="mt-5 space-y-3">
+              {movements.slice(0, 5).map((movement) => {
+                const item = inventory.find((entry) => entry.id === movement.itemId);
+                return (
+                  <li key={movement.id} className="rounded-xl border border-blue-900/60 bg-zinc-700/60 p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">{item?.nome ?? "Item removido"}</p>
+                      <p className={movement.tipo === "entrada" ? "text-blue-300" : "text-yellow-300"}>
+                        {movement.tipo}
+                      </p>
+                    </div>
+                    <p className="mt-1 text-sm text-blue-100/80">
+                      {dateFormatter.format(new Date(movement.data))} | Qtd: {movement.quantidade}
                     </p>
-                  </div>
-                  <p className="mt-1 text-sm text-blue-100/80">
-                    {dateFormatter.format(new Date(movement.data))} | Qtd: {movement.quantidade}
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
+                  </li>
+                );
+              })}
+            </ul>
           </CardContent>
         </Card>
       </section>
     </PageShell>
   );
 }
+
+

@@ -36,7 +36,7 @@ export function SidebarNav() {
       >
         <Card className="h-full">
           <CardContent className="p-4">
-            <div className="mb-6 rounded-xl bg-zinc-900 p-4 text-white">
+            <div className="mb-6 rounded-xl bg-zinc-700 p-4 text-white">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs uppercase tracking-[0.2em] text-blue-200">SushiFlow</p>
                 <Badge variant="warning">Pro</Badge>
@@ -56,7 +56,7 @@ export function SidebarNav() {
                     className={cn(
                       "block rounded-md px-3 py-2 text-sm font-medium transition",
                       isActive
-                        ? "bg-yellow-300/90 text-zinc-950 ring-1 ring-yellow-400"
+                        ? "bg-yellow-300/90 text-zinc-800 ring-1 ring-yellow-400"
                         : "text-blue-100 hover:bg-blue-950/50 hover:text-yellow-300",
                     )}
                   >
@@ -71,3 +71,4 @@ export function SidebarNav() {
     </>
   );
 }
+

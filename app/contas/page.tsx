@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppData } from "@/hooks/use-app-data";
@@ -22,6 +23,7 @@ function statusClass(status: AccountStatus) {
 
 export default function ContasPage() {
   const { accounts, setAccounts, ready } = useAppData();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState({
     descricao: "",
@@ -53,7 +55,7 @@ export default function ContasPage() {
     ];
   }, [accounts]);
 
-  if (!ready) return <p className="rounded-2xl border border-blue-900 bg-zinc-950 p-6 text-sm text-blue-100">Carregando...</p>;
+  if (!ready) return <p className="rounded-2xl border border-blue-900 bg-zinc-700 p-6 text-sm text-blue-100">Carregando...</p>;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -89,10 +91,26 @@ export default function ContasPage() {
       status: "aberta",
     });
     setMessage("Conta registrada com sucesso.");
+    setIsModalOpen(false);
   }
 
   return (
-    <PageShell title="Contas" subtitle="Controle de contas a pagar e receber com status financeiro.">
+    <PageShell
+      title="Contas"
+      subtitle="Controle de contas a pagar e receber com status financeiro."
+      actions={
+        <Button
+          onClick={() => {
+            setMessage(null);
+            setIsModalOpen(true);
+          }}
+        >
+          Nova conta
+        </Button>
+      }
+    >
+      {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
+
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardContent className="min-h-28 p-5">
@@ -124,65 +142,7 @@ export default function ContasPage() {
         </Card>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-1">
-          <CardContent className="p-5">
-          <h3 className="text-base font-semibold text-yellow-300">Nova conta</h3>
-          {message ? <p className="mt-3 rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
-          <form className="mt-4 space-y-3" onSubmit={onSubmit}>
-            <Input
-              placeholder="Descricao"
-              value={form.descricao}
-              onChange={(event) => setForm((prev) => ({ ...prev, descricao: event.target.value }))}
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <Select
-                value={form.tipo}
-                onChange={(event) => setForm((prev) => ({ ...prev, tipo: event.target.value as AccountType }))}
-              >
-                <option value="pagar">pagar</option>
-                <option value="receber">receber</option>
-              </Select>
-              <Select
-                value={form.status}
-                onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as AccountStatus }))}
-              >
-                <option value="aberta">aberta</option>
-                <option value="paga">paga</option>
-                <option value="atrasada">atrasada</option>
-              </Select>
-            </div>
-            <Input
-              placeholder="Parceiro"
-              value={form.parceiro}
-              onChange={(event) => setForm((prev) => ({ ...prev, parceiro: event.target.value }))}
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                type="date"
-                value={form.vencimento}
-                onChange={(event) => setForm((prev) => ({ ...prev, vencimento: event.target.value }))}
-              />
-              <Input
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={form.valor}
-                onChange={(event) => setForm((prev) => ({ ...prev, valor: event.target.value }))}
-                placeholder="Valor"
-              />
-            </div>
-            <Button className="w-full" type="submit">
-              Salvar conta
-            </Button>
-          </form>
-          </CardContent>
-        </Card>
-
-        <div className="xl:col-span-2">
-          <MiniBarChart title="Distribuicao de valores por status" data={statusChart} />
-        </div>
-      </section>
+      <MiniBarChart title="Distribuicao de valores por status" data={statusChart} />
 
       <Card>
         <CardContent className="p-5">
@@ -219,6 +179,63 @@ export default function ContasPage() {
         </div>
         </CardContent>
       </Card>
+
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Nova conta"
+        description="Registre contas a pagar ou receber com status e vencimento."
+      >
+        {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
+        <form className="mt-4 space-y-3" onSubmit={onSubmit}>
+          <Input
+            placeholder="Descricao"
+            value={form.descricao}
+            onChange={(event) => setForm((prev) => ({ ...prev, descricao: event.target.value }))}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <Select
+              value={form.tipo}
+              onChange={(event) => setForm((prev) => ({ ...prev, tipo: event.target.value as AccountType }))}
+            >
+              <option value="pagar">pagar</option>
+              <option value="receber">receber</option>
+            </Select>
+            <Select
+              value={form.status}
+              onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as AccountStatus }))}
+            >
+              <option value="aberta">aberta</option>
+              <option value="paga">paga</option>
+              <option value="atrasada">atrasada</option>
+            </Select>
+          </div>
+          <Input
+            placeholder="Parceiro"
+            value={form.parceiro}
+            onChange={(event) => setForm((prev) => ({ ...prev, parceiro: event.target.value }))}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              type="date"
+              value={form.vencimento}
+              onChange={(event) => setForm((prev) => ({ ...prev, vencimento: event.target.value }))}
+            />
+            <Input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={form.valor}
+              onChange={(event) => setForm((prev) => ({ ...prev, valor: event.target.value }))}
+              placeholder="Valor"
+            />
+          </div>
+          <Button className="w-full" type="submit">
+            Salvar conta
+          </Button>
+        </form>
+      </Modal>
     </PageShell>
   );
 }
+

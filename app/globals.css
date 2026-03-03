@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #04070d;
+  --background: #172235;
   --foreground: #f8e7b2;
 }
 
@@ -17,3 +17,5 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
 }
+
+

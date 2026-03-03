@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <div className="min-h-screen bg-[radial-gradient(circle_at_top,#0e2347_0%,#050811_45%,#02040a_100%)]">
+        <div className="min-h-screen bg-[radial-gradient(circle_at_top,#1f3f6d_0%,#162234_45%,#0e1726_100%)]">
           <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4 p-4 lg:flex-row lg:gap-6 lg:p-6">
             <SidebarNav />
             <main className="min-w-0 flex-1">{children}</main>
@@ -39,3 +39,4 @@ export default function RootLayout({
     </html>
   );
 }
+

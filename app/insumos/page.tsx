@@ -3,8 +3,9 @@
 import { FormEvent, useState } from "react";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppData } from "@/hooks/use-app-data";
@@ -17,6 +18,7 @@ const units: UnitType[] = ["kg", "un", "l"];
 
 export default function InsumosPage() {
   const { inventory, setInventory, suppliers, ready } = useAppData();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState({
     nome: "",
@@ -28,7 +30,7 @@ export default function InsumosPage() {
     fornecedorId: "",
   });
 
-  if (!ready) return <p className="rounded-2xl border border-blue-900 bg-zinc-950 p-6 text-sm text-blue-100">Carregando...</p>;
+  if (!ready) return <p className="rounded-2xl border border-blue-900 bg-zinc-700 p-6 text-sm text-blue-100">Carregando...</p>;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,18 +71,75 @@ export default function InsumosPage() {
       fornecedorId: "",
     });
     setMessage("Insumo cadastrado com sucesso.");
+    setIsModalOpen(false);
   }
 
   return (
-    <PageShell title="Cadastro de Insumos" subtitle="Gestao completa dos itens de estoque do sushi bar.">
-      <section className="grid gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-1">
-          <CardHeader>
-            <CardTitle>Novo insumo</CardTitle>
-          </CardHeader>
-          <CardContent>
-          {message ? <p className="mt-3 rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
-          <form className="mt-4 space-y-3" onSubmit={onSubmit}>
+    <PageShell
+      title="Cadastro de Insumos"
+      subtitle="Gestao completa dos itens de estoque do sushi bar."
+      actions={
+        <Button
+          onClick={() => {
+            setMessage(null);
+            setIsModalOpen(true);
+          }}
+        >
+          Novo insumo
+        </Button>
+      }
+    >
+      {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
+
+      <Card>
+        <CardHeader>
+          <h3 className="mb-4 text-base font-semibold text-yellow-300">Lista de insumos</h3>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-blue-900/60 text-blue-200">
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Estoque</TableHead>
+                  <TableHead>Minimo</TableHead>
+                  <TableHead>Custo</TableHead>
+                  <TableHead className="pr-0">Fornecedor</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {inventory.map((item) => {
+                  const supplier = suppliers.find((entry) => entry.id === item.fornecedorId);
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.nome}</TableCell>
+                      <TableCell>{item.categoria}</TableCell>
+                      <TableCell>
+                        {item.estoqueAtual} {item.unidade}
+                      </TableCell>
+                      <TableCell>
+                        {item.estoqueMinimo} {item.unidade}
+                      </TableCell>
+                      <TableCell>{moneyFormatter.format(item.custoUnitario)}</TableCell>
+                      <TableCell className="pr-0">{supplier?.nomeFantasia ?? "-"}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Novo insumo"
+        description="Cadastre um item de estoque com valores, unidade e fornecedor."
+      >
+        {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
+        <form className="mt-4 space-y-3" onSubmit={onSubmit}>
             <Input
               placeholder="Nome do insumo"
               value={form.nome}
@@ -149,50 +208,8 @@ export default function InsumosPage() {
               Cadastrar insumo
             </Button>
           </form>
-          </CardContent>
-        </Card>
-
-        <Card className="xl:col-span-2">
-          <CardHeader>
-          <h3 className="mb-4 text-base font-semibold text-yellow-300">Lista de insumos</h3>
-          </CardHeader>
-          <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-blue-900/60 text-blue-200">
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Estoque</TableHead>
-                  <TableHead>Minimo</TableHead>
-                  <TableHead>Custo</TableHead>
-                  <TableHead className="pr-0">Fornecedor</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {inventory.map((item) => {
-                  const supplier = suppliers.find((entry) => entry.id === item.fornecedorId);
-                  return (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.nome}</TableCell>
-                      <TableCell>{item.categoria}</TableCell>
-                      <TableCell>
-                        {item.estoqueAtual} {item.unidade}
-                      </TableCell>
-                      <TableCell>
-                        {item.estoqueMinimo} {item.unidade}
-                      </TableCell>
-                      <TableCell>{moneyFormatter.format(item.custoUnitario)}</TableCell>
-                      <TableCell className="pr-0">{supplier?.nomeFantasia ?? "-"}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-          </CardContent>
-        </Card>
-      </section>
+      </Modal>
     </PageShell>
   );
 }
+

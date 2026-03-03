@@ -5,6 +5,7 @@ import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +16,7 @@ import type { MovementType, StockMovement } from "@/lib/types";
 
 export default function MovimentacoesPage() {
   const { inventory, setInventory, movements, setMovements, ready } = useAppData();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState({
     itemId: "",
@@ -28,7 +30,7 @@ export default function MovimentacoesPage() {
     [form.itemId, inventory],
   );
 
-  if (!ready) return <p className="rounded-2xl border border-blue-900 bg-zinc-950 p-6 text-sm text-blue-100">Carregando...</p>;
+  if (!ready) return <p className="rounded-2xl border border-blue-900 bg-zinc-700 p-6 text-sm text-blue-100">Carregando...</p>;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -77,18 +79,74 @@ export default function MovimentacoesPage() {
 
     setForm({ itemId: "", tipo: "entrada", quantidade: "0", observacao: "" });
     setMessage("Movimentacao registrada.");
+    setIsModalOpen(false);
   }
 
   return (
-    <PageShell title="Entradas e Saidas" subtitle="Controle de movimentacao de estoque com validacao de saldo.">
-      <section className="grid gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-1">
-          <CardHeader>
-            <CardTitle>Nova movimentacao</CardTitle>
-          </CardHeader>
-          <CardContent>
-          {message ? <p className="mt-3 rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
-          <form className="mt-4 space-y-3" onSubmit={onSubmit}>
+    <PageShell
+      title="Entradas e Saidas"
+      subtitle="Controle de movimentacao de estoque com validacao de saldo."
+      actions={
+        <Button
+          onClick={() => {
+            setMessage(null);
+            setIsModalOpen(true);
+          }}
+        >
+          Nova movimentacao
+        </Button>
+      }
+    >
+      {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Historico de movimentacoes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-blue-900/60 text-blue-200">
+                  <TableHead>Data</TableHead>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Quantidade</TableHead>
+                  <TableHead>Observacao</TableHead>
+                  <TableHead className="pr-0">Valor aprox.</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {movements.map((movement) => {
+                  const item = inventory.find((entry) => entry.id === movement.itemId);
+                  const amount = item ? movement.quantidade * item.custoUnitario : 0;
+                  return (
+                    <TableRow key={movement.id}>
+                      <TableCell>{dateFormatter.format(new Date(movement.data))}</TableCell>
+                      <TableCell>{item?.nome ?? "Item removido"}</TableCell>
+                      <TableCell className={`font-semibold ${movement.tipo === "entrada" ? "text-blue-300" : "text-yellow-300"}`}>
+                        {movement.tipo}
+                      </TableCell>
+                      <TableCell>{movement.quantidade}</TableCell>
+                      <TableCell>{movement.observacao}</TableCell>
+                      <TableCell className="pr-0">{moneyFormatter.format(amount)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Nova movimentacao"
+        description="Registre entradas e saidas com validacao de saldo em estoque."
+      >
+        {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
+        <form className="mt-4 space-y-3" onSubmit={onSubmit}>
             <Select
               value={form.itemId}
               onChange={(event) => setForm((prev) => ({ ...prev, itemId: event.target.value }))}
@@ -131,49 +189,8 @@ export default function MovimentacoesPage() {
               Registrar movimentacao
             </Button>
           </form>
-          </CardContent>
-        </Card>
-
-        <Card className="xl:col-span-2">
-          <CardHeader>
-            <CardTitle>Historico de movimentacoes</CardTitle>
-          </CardHeader>
-          <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-blue-900/60 text-blue-200">
-                  <TableHead>Data</TableHead>
-                  <TableHead>Item</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Quantidade</TableHead>
-                  <TableHead>Observacao</TableHead>
-                  <TableHead className="pr-0">Valor aprox.</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {movements.map((movement) => {
-                  const item = inventory.find((entry) => entry.id === movement.itemId);
-                  const amount = item ? movement.quantidade * item.custoUnitario : 0;
-                  return (
-                    <TableRow key={movement.id}>
-                      <TableCell>{dateFormatter.format(new Date(movement.data))}</TableCell>
-                      <TableCell>{item?.nome ?? "Item removido"}</TableCell>
-                      <TableCell className={`font-semibold ${movement.tipo === "entrada" ? "text-blue-300" : "text-yellow-300"}`}>
-                        {movement.tipo}
-                      </TableCell>
-                      <TableCell>{movement.quantidade}</TableCell>
-                      <TableCell>{movement.observacao}</TableCell>
-                      <TableCell className="pr-0">{moneyFormatter.format(amount)}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-          </CardContent>
-        </Card>
-      </section>
+      </Modal>
     </PageShell>
   );
 }
+

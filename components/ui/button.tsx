@@ -6,7 +6,7 @@ type Size = "default" | "sm";
 
 const variantClass: Record<Variant, string> = {
   default: "bg-blue-700 text-blue-50 hover:bg-blue-600",
-  outline: "border border-blue-700 bg-zinc-950 text-blue-100 hover:bg-blue-950/50",
+  outline: "border border-blue-700 bg-zinc-700 text-blue-100 hover:bg-blue-950/50",
   ghost: "text-blue-200 hover:bg-blue-950/40 hover:text-blue-50",
 };
 
@@ -34,3 +34,4 @@ export function Button({ className, variant = "default", size = "default", ...pr
     />
   );
 }
+
