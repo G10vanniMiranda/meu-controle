@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
-  defaultAccounts,
   defaultCashFlow,
+  defaultAccounts,
   defaultInventoryItems,
   defaultStockMovements,
   defaultSuppliers,
@@ -12,26 +13,110 @@ import type { AccountEntry, CashFlowEntry, InventoryItem, StockMovement, Supplie
 import { useLocalStorageState } from "@/hooks/use-local-storage";
 
 export function useAppData() {
-  const [inventory, setInventory, inventoryReady] = useLocalStorageState<InventoryItem[]>(
-    STORAGE_KEYS.inventory,
-    defaultInventoryItems,
-  );
-  const [suppliers, setSuppliers, suppliersReady] = useLocalStorageState<Supplier[]>(
-    STORAGE_KEYS.suppliers,
-    defaultSuppliers,
-  );
-  const [movements, setMovements, movementsReady] = useLocalStorageState<StockMovement[]>(
-    STORAGE_KEYS.movements,
-    defaultStockMovements,
-  );
-  const [accounts, setAccounts, accountsReady] = useLocalStorageState<AccountEntry[]>(
-    STORAGE_KEYS.accounts,
-    defaultAccounts,
-  );
+  const [inventory, setInventory] = useState<InventoryItem[]>(defaultInventoryItems);
+  const [suppliers, setSuppliers] = useState<Supplier[]>(defaultSuppliers);
+  const [movements, setMovements] = useState<StockMovement[]>(defaultStockMovements);
+  const [accounts, setAccounts] = useState<AccountEntry[]>(defaultAccounts);
+  const [inventoryReady, setInventoryReady] = useState(false);
+  const [suppliersReady, setSuppliersReady] = useState(false);
+  const [movementsReady, setMovementsReady] = useState(false);
+  const [accountsReady, setAccountsReady] = useState(false);
   const [cashFlow, setCashFlow, cashFlowReady] = useLocalStorageState<CashFlowEntry[]>(
     STORAGE_KEYS.cashFlow,
     defaultCashFlow,
   );
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSuppliers() {
+      try {
+        const response = await fetch("/api/fornecedores", { cache: "no-store" });
+        if (!response.ok) throw new Error("Falha ao carregar fornecedores");
+        const data = (await response.json()) as Supplier[];
+        if (active) setSuppliers(data);
+      } catch {
+        if (active) setSuppliers(defaultSuppliers);
+      } finally {
+        if (active) setSuppliersReady(true);
+      }
+    }
+
+    loadSuppliers();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadInventory() {
+      try {
+        const response = await fetch("/api/insumos", { cache: "no-store" });
+        if (!response.ok) throw new Error("Falha ao carregar insumos");
+        const data = (await response.json()) as InventoryItem[];
+        if (active) setInventory(data);
+      } catch {
+        if (active) setInventory(defaultInventoryItems);
+      } finally {
+        if (active) setInventoryReady(true);
+      }
+    }
+
+    loadInventory();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadMovements() {
+      try {
+        const response = await fetch("/api/movimentacoes", { cache: "no-store" });
+        if (!response.ok) throw new Error("Falha ao carregar movimentacoes");
+        const data = (await response.json()) as StockMovement[];
+        if (active) setMovements(data);
+      } catch {
+        if (active) setMovements(defaultStockMovements);
+      } finally {
+        if (active) setMovementsReady(true);
+      }
+    }
+
+    loadMovements();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadAccounts() {
+      try {
+        const response = await fetch("/api/contas", { cache: "no-store" });
+        if (!response.ok) throw new Error("Falha ao carregar contas");
+        const data = (await response.json()) as AccountEntry[];
+        if (active) setAccounts(data);
+      } catch {
+        if (active) setAccounts(defaultAccounts);
+      } finally {
+        if (active) setAccountsReady(true);
+      }
+    }
+
+    loadAccounts();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return {
     inventory,

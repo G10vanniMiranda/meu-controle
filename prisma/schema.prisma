@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum InventoryCategory {
+  peixe
+  arroz
+  embalagem
+  bebida
+  tempero
+  outros
+}
+
+enum UnitType {
+  kg
+  un
+  l
+}
+
+enum MovementType {
+  entrada
+  saida
+}
+
+enum AccountType {
+  pagar
+  receber
+}
+
+enum AccountStatus {
+  aberta
+  paga
+  atrasada
+}
+
+model Supplier {
+  id           String          @id @default(cuid())
+  nomeFantasia String
+  documento    String          @unique
+  contato      String
+  telefone     String
+  observacoes  String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  inventory    InventoryItem[]
+}
+
+model InventoryItem {
+  id            String            @id @default(cuid())
+  nome          String
+  categoria     InventoryCategory
+  unidade       UnitType
+  estoqueAtual  Decimal           @db.Decimal(10, 2)
+  estoqueMinimo Decimal           @db.Decimal(10, 2)
+  custoUnitario Decimal           @db.Decimal(10, 2)
+  fornecedorId  String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  fornecedor    Supplier?         @relation(fields: [fornecedorId], references: [id], onDelete: SetNull)
+  movements     StockMovement[]
+
+  @@index([fornecedorId])
+}
+
+model StockMovement {
+  id         String       @id @default(cuid())
+  data       DateTime
+  itemId     String
+  tipo       MovementType
+  quantidade Decimal      @db.Decimal(10, 2)
+  observacao String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  item       InventoryItem @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@index([itemId])
+  @@index([data])
+}
+
+model AccountEntry {
+  id         String       @id @default(cuid())
+  descricao  String
+  tipo       AccountType
+  parceiro   String
+  vencimento DateTime
+  valor      Decimal      @db.Decimal(10, 2)
+  status     AccountStatus
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([vencimento])
+  @@index([status])
+}

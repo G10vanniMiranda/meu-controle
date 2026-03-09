@@ -10,7 +10,6 @@ import { Select } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppData } from "@/hooks/use-app-data";
 import { moneyFormatter } from "@/lib/formatters";
-import { generateId } from "@/lib/id";
 import type { InventoryCategory, InventoryItem, UnitType } from "@/lib/types";
 
 const categories: InventoryCategory[] = ["peixe", "arroz", "embalagem", "bebida", "tempero", "outros"];
@@ -19,6 +18,7 @@ const units: UnitType[] = ["kg", "un", "l"];
 export default function InsumosPage() {
   const { inventory, setInventory, suppliers, ready } = useAppData();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState({
     nome: "",
@@ -32,7 +32,60 @@ export default function InsumosPage() {
 
   if (!ready) return <p className="rounded-2xl border border-blue-900 bg-zinc-700 p-6 text-sm text-blue-100">Carregando...</p>;
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function resetForm() {
+    setForm({
+      nome: "",
+      categoria: "outros",
+      unidade: "un",
+      estoqueAtual: "0",
+      estoqueMinimo: "0",
+      custoUnitario: "0",
+      fornecedorId: "",
+    });
+    setEditingItemId(null);
+  }
+
+  function startCreate() {
+    setMessage(null);
+    resetForm();
+    setIsModalOpen(true);
+  }
+
+  function startEdit(item: InventoryItem) {
+    setMessage(null);
+    setEditingItemId(item.id);
+    setForm({
+      nome: item.nome,
+      categoria: item.categoria,
+      unidade: item.unidade,
+      estoqueAtual: String(item.estoqueAtual),
+      estoqueMinimo: String(item.estoqueMinimo),
+      custoUnitario: String(item.custoUnitario),
+      fornecedorId: item.fornecedorId ?? "",
+    });
+    setIsModalOpen(true);
+  }
+
+  async function onDelete(id: string) {
+    setMessage(null);
+    if (!window.confirm("Deseja realmente excluir este insumo?")) return;
+
+    try {
+      const response = await fetch(`/api/insumos/${id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const data = (await response.json()) as { message?: string };
+        setMessage(data.message ?? "Erro ao remover insumo.");
+        return;
+      }
+
+      setInventory((prev) => prev.filter((entry) => entry.id !== id));
+      setMessage("Insumo removido com sucesso.");
+    } catch {
+      setMessage("Erro de conexao ao remover insumo.");
+    }
+  }
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(null);
 
@@ -49,29 +102,40 @@ export default function InsumosPage() {
       return;
     }
 
-    const newItem: InventoryItem = {
-      id: generateId("itm"),
-      nome: form.nome.trim(),
-      categoria: form.categoria,
-      unidade: form.unidade,
-      estoqueAtual,
-      estoqueMinimo,
-      custoUnitario,
-      fornecedorId: form.fornecedorId || undefined,
-    };
+    try {
+      const response = await fetch(editingItemId ? `/api/insumos/${editingItemId}` : "/api/insumos", {
+        method: editingItemId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: form.nome.trim(),
+          categoria: form.categoria,
+          unidade: form.unidade,
+          estoqueAtual,
+          estoqueMinimo,
+          custoUnitario,
+          fornecedorId: form.fornecedorId || undefined,
+        }),
+      });
+      const data = (await response.json()) as Partial<InventoryItem> & { message?: string };
 
-    setInventory((prev) => [newItem, ...prev]);
-    setForm({
-      nome: "",
-      categoria: "outros",
-      unidade: "un",
-      estoqueAtual: "0",
-      estoqueMinimo: "0",
-      custoUnitario: "0",
-      fornecedorId: "",
-    });
-    setMessage("Insumo cadastrado com sucesso.");
-    setIsModalOpen(false);
+      if (!response.ok) {
+        setMessage(data.message ?? "Erro ao salvar insumo.");
+        return;
+      }
+
+      if (editingItemId) {
+        setInventory((prev) => prev.map((entry) => (entry.id === editingItemId ? (data as InventoryItem) : entry)));
+        setMessage("Insumo atualizado com sucesso.");
+      } else {
+        setInventory((prev) => [data as InventoryItem, ...prev]);
+        setMessage("Insumo cadastrado com sucesso.");
+      }
+
+      resetForm();
+      setIsModalOpen(false);
+    } catch {
+      setMessage("Erro de conexao ao salvar insumo.");
+    }
   }
 
   return (
@@ -79,12 +143,7 @@ export default function InsumosPage() {
       title="Cadastro de Insumos"
       subtitle="Gestao completa dos itens de estoque do sushi bar."
       actions={
-        <Button
-          onClick={() => {
-            setMessage(null);
-            setIsModalOpen(true);
-          }}
-        >
+        <Button onClick={startCreate}>
           Novo insumo
         </Button>
       }
@@ -105,7 +164,8 @@ export default function InsumosPage() {
                   <TableHead>Estoque</TableHead>
                   <TableHead>Minimo</TableHead>
                   <TableHead>Custo</TableHead>
-                  <TableHead className="pr-0">Fornecedor</TableHead>
+                  <TableHead>Fornecedor</TableHead>
+                  <TableHead className="pr-0">Acoes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -122,7 +182,17 @@ export default function InsumosPage() {
                         {item.estoqueMinimo} {item.unidade}
                       </TableCell>
                       <TableCell>{moneyFormatter.format(item.custoUnitario)}</TableCell>
-                      <TableCell className="pr-0">{supplier?.nomeFantasia ?? "-"}</TableCell>
+                      <TableCell>{supplier?.nomeFantasia ?? "-"}</TableCell>
+                      <TableCell className="pr-0">
+                        <div className="flex items-center gap-2">
+                          <Button type="button" size="sm" variant="ghost" onClick={() => startEdit(item)}>
+                            Editar
+                          </Button>
+                          <Button type="button" size="sm" variant="outline" onClick={() => onDelete(item.id)}>
+                            Excluir
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -134,9 +204,12 @@ export default function InsumosPage() {
 
       <Modal
         open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Novo insumo"
-        description="Cadastre um item de estoque com valores, unidade e fornecedor."
+        onClose={() => {
+          setIsModalOpen(false);
+          resetForm();
+        }}
+        title={editingItemId ? "Editar insumo" : "Novo insumo"}
+        description={editingItemId ? "Atualize os dados do item de estoque." : "Cadastre um item de estoque com valores, unidade e fornecedor."}
       >
         {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
         <form className="mt-4 space-y-3" onSubmit={onSubmit}>
@@ -205,7 +278,7 @@ export default function InsumosPage() {
               ))}
             </Select>
             <Button className="w-full" type="submit">
-              Cadastrar insumo
+              {editingItemId ? "Salvar alteracoes" : "Cadastrar insumo"}
             </Button>
           </form>
       </Modal>

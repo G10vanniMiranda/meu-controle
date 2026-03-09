@@ -12,7 +12,6 @@ import { Select } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppData } from "@/hooks/use-app-data";
 import { dateFormatter, moneyFormatter } from "@/lib/formatters";
-import { generateId } from "@/lib/id";
 import type { AccountEntry, AccountStatus, AccountType } from "@/lib/types";
 
 function statusClass(status: AccountStatus) {
@@ -57,7 +56,7 @@ export default function ContasPage() {
 
   if (!ready) return <p className="rounded-2xl border border-blue-900 bg-zinc-700 p-6 text-sm text-blue-100">Carregando...</p>;
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(null);
 
@@ -72,26 +71,40 @@ export default function ContasPage() {
       return;
     }
 
-    const newAccount: AccountEntry = {
-      id: generateId("acc"),
-      descricao: form.descricao.trim(),
-      tipo: form.tipo,
-      parceiro: form.parceiro.trim(),
-      vencimento: form.vencimento,
-      valor,
-      status: form.status,
-    };
-    setAccounts((prev) => [newAccount, ...prev]);
-    setForm({
-      descricao: "",
-      tipo: "pagar",
-      parceiro: "",
-      vencimento: "",
-      valor: "0",
-      status: "aberta",
-    });
-    setMessage("Conta registrada com sucesso.");
-    setIsModalOpen(false);
+    try {
+      const response = await fetch("/api/contas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          descricao: form.descricao.trim(),
+          tipo: form.tipo,
+          parceiro: form.parceiro.trim(),
+          vencimento: form.vencimento,
+          valor,
+          status: form.status,
+        }),
+      });
+      const data = (await response.json()) as Partial<AccountEntry> & { message?: string };
+
+      if (!response.ok) {
+        setMessage(data.message ?? "Erro ao registrar conta.");
+        return;
+      }
+
+      setAccounts((prev) => [data as AccountEntry, ...prev]);
+      setForm({
+        descricao: "",
+        tipo: "pagar",
+        parceiro: "",
+        vencimento: "",
+        valor: "0",
+        status: "aberta",
+      });
+      setMessage("Conta registrada com sucesso.");
+      setIsModalOpen(false);
+    } catch {
+      setMessage("Erro de conexao ao registrar conta.");
+    }
   }
 
   return (

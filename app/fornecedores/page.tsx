@@ -9,12 +9,12 @@ import { Modal } from "@/components/ui/modal";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppData } from "@/hooks/use-app-data";
-import { generateId } from "@/lib/id";
 import type { Supplier } from "@/lib/types";
 
 export default function FornecedoresPage() {
   const { suppliers, setSuppliers, ready } = useAppData();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState({
     nomeFantasia: "",
@@ -26,7 +26,56 @@ export default function FornecedoresPage() {
 
   if (!ready) return <p className="rounded-2xl border border-blue-900 bg-zinc-700 p-6 text-sm text-blue-100">Carregando...</p>;
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function resetForm() {
+    setForm({
+      nomeFantasia: "",
+      documento: "",
+      contato: "",
+      telefone: "",
+      observacoes: "",
+    });
+    setEditingSupplierId(null);
+  }
+
+  function startCreate() {
+    setMessage(null);
+    resetForm();
+    setIsModalOpen(true);
+  }
+
+  function startEdit(supplier: Supplier) {
+    setMessage(null);
+    setEditingSupplierId(supplier.id);
+    setForm({
+      nomeFantasia: supplier.nomeFantasia,
+      documento: supplier.documento,
+      contato: supplier.contato,
+      telefone: supplier.telefone,
+      observacoes: supplier.observacoes ?? "",
+    });
+    setIsModalOpen(true);
+  }
+
+  async function onDelete(id: string) {
+    setMessage(null);
+    if (!window.confirm("Deseja realmente excluir este fornecedor?")) return;
+
+    try {
+      const response = await fetch(`/api/fornecedores/${id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const data = (await response.json()) as { message?: string };
+        setMessage(data.message ?? "Erro ao remover fornecedor.");
+        return;
+      }
+
+      setSuppliers((prev) => prev.filter((entry) => entry.id !== id));
+      setMessage("Fornecedor removido com sucesso.");
+    } catch {
+      setMessage("Erro de conexao ao remover fornecedor.");
+    }
+  }
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(null);
 
@@ -35,25 +84,40 @@ export default function FornecedoresPage() {
       return;
     }
 
-    const newSupplier: Supplier = {
-      id: generateId("sup"),
-      nomeFantasia: form.nomeFantasia.trim(),
-      documento: form.documento.trim(),
-      contato: form.contato.trim() || "Nao informado",
-      telefone: form.telefone.trim() || "Nao informado",
-      observacoes: form.observacoes.trim() || undefined,
-    };
+    try {
+      const response = await fetch(
+        editingSupplierId ? `/api/fornecedores/${editingSupplierId}` : "/api/fornecedores",
+        {
+        method: editingSupplierId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nomeFantasia: form.nomeFantasia.trim(),
+          documento: form.documento.trim(),
+          contato: form.contato.trim() || "Nao informado",
+          telefone: form.telefone.trim() || "Nao informado",
+          observacoes: form.observacoes.trim() || undefined,
+        }),
+      });
+      const data = (await response.json()) as Partial<Supplier> & { message?: string };
 
-    setSuppliers((prev) => [newSupplier, ...prev]);
-    setForm({
-      nomeFantasia: "",
-      documento: "",
-      contato: "",
-      telefone: "",
-      observacoes: "",
-    });
-    setMessage("Fornecedor cadastrado com sucesso.");
-    setIsModalOpen(false);
+      if (!response.ok) {
+        setMessage(data.message ?? "Erro ao cadastrar fornecedor.");
+        return;
+      }
+
+      if (editingSupplierId) {
+        setSuppliers((prev) => prev.map((entry) => (entry.id === editingSupplierId ? (data as Supplier) : entry)));
+        setMessage("Fornecedor atualizado com sucesso.");
+      } else {
+        setSuppliers((prev) => [data as Supplier, ...prev]);
+        setMessage("Fornecedor cadastrado com sucesso.");
+      }
+
+      resetForm();
+      setIsModalOpen(false);
+    } catch {
+      setMessage("Erro de conexao ao cadastrar fornecedor.");
+    }
   }
 
   return (
@@ -61,12 +125,7 @@ export default function FornecedoresPage() {
       title="Cadastro de Fornecedores"
       subtitle="Gestao de parceiros e contatos comerciais."
       actions={
-        <Button
-          onClick={() => {
-            setMessage(null);
-            setIsModalOpen(true);
-          }}
-        >
+        <Button onClick={startCreate}>
           Novo fornecedor
         </Button>
       }
@@ -86,7 +145,8 @@ export default function FornecedoresPage() {
                   <TableHead>Documento</TableHead>
                   <TableHead>Contato</TableHead>
                   <TableHead>Telefone</TableHead>
-                  <TableHead className="pr-0">Observacoes</TableHead>
+                  <TableHead>Observacoes</TableHead>
+                  <TableHead className="pr-0">Acoes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -96,7 +156,17 @@ export default function FornecedoresPage() {
                     <TableCell>{supplier.documento}</TableCell>
                     <TableCell>{supplier.contato}</TableCell>
                     <TableCell>{supplier.telefone}</TableCell>
-                    <TableCell className="pr-0">{supplier.observacoes ?? "-"}</TableCell>
+                    <TableCell>{supplier.observacoes ?? "-"}</TableCell>
+                    <TableCell className="pr-0">
+                      <div className="flex items-center gap-2">
+                        <Button type="button" size="sm" variant="ghost" onClick={() => startEdit(supplier)}>
+                          Editar
+                        </Button>
+                        <Button type="button" size="sm" variant="outline" onClick={() => onDelete(supplier.id)}>
+                          Excluir
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -107,9 +177,12 @@ export default function FornecedoresPage() {
 
       <Modal
         open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Novo fornecedor"
-        description="Preencha os dados para cadastrar um novo parceiro comercial."
+        onClose={() => {
+          setIsModalOpen(false);
+          resetForm();
+        }}
+        title={editingSupplierId ? "Editar fornecedor" : "Novo fornecedor"}
+        description={editingSupplierId ? "Atualize os dados do fornecedor." : "Preencha os dados para cadastrar um novo parceiro comercial."}
       >
         {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
         <form className="mt-4 space-y-3" onSubmit={onSubmit}>
@@ -140,7 +213,7 @@ export default function FornecedoresPage() {
               onChange={(event) => setForm((prev) => ({ ...prev, observacoes: event.target.value }))}
             />
             <Button className="w-full" type="submit">
-              Cadastrar fornecedor
+              {editingSupplierId ? "Salvar alteracoes" : "Cadastrar fornecedor"}
             </Button>
           </form>
       </Modal>

@@ -1,0 +1,106 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { defaultInventoryItems } from "@/lib/mock-data";
+import { prisma } from "@/lib/prisma";
+
+const inventorySchema = z.object({
+  nome: z.string().trim().min(1, "nome e obrigatorio"),
+  categoria: z.enum(["peixe", "arroz", "embalagem", "bebida", "tempero", "outros"]),
+  unidade: z.enum(["kg", "un", "l"]),
+  estoqueAtual: z.number().min(0),
+  estoqueMinimo: z.number().min(0),
+  custoUnitario: z.number().min(0),
+  fornecedorId: z.string().trim().optional(),
+});
+
+export async function GET() {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(defaultInventoryItems);
+  }
+
+  const items = await prisma.inventoryItem.findMany({
+    include: {
+      fornecedor: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return NextResponse.json(
+    items.map((item) => ({
+      id: item.id,
+      nome: item.nome,
+      categoria: item.categoria,
+      unidade: item.unidade,
+      estoqueAtual: Number(item.estoqueAtual),
+      estoqueMinimo: Number(item.estoqueMinimo),
+      custoUnitario: Number(item.custoUnitario),
+      fornecedorId: item.fornecedorId ?? undefined,
+      fornecedor: item.fornecedor
+        ? {
+            id: item.fornecedor.id,
+            nomeFantasia: item.fornecedor.nomeFantasia,
+          }
+        : null,
+    })),
+  );
+}
+
+export async function POST(request: Request) {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(
+      { message: "Banco nao configurado. Defina DATABASE_URL para habilitar escrita." },
+      { status: 503 },
+    );
+  }
+
+  try {
+    const body = await request.json();
+    const parsed = inventorySchema.parse(body);
+
+    if (parsed.fornecedorId) {
+      const supplierExists = await prisma.supplier.findUnique({
+        where: { id: parsed.fornecedorId },
+        select: { id: true },
+      });
+
+      if (!supplierExists) {
+        return NextResponse.json({ message: "fornecedorId invalido" }, { status: 400 });
+      }
+    }
+
+    const item = await prisma.inventoryItem.create({
+      data: {
+        nome: parsed.nome,
+        categoria: parsed.categoria,
+        unidade: parsed.unidade,
+        estoqueAtual: parsed.estoqueAtual,
+        estoqueMinimo: parsed.estoqueMinimo,
+        custoUnitario: parsed.custoUnitario,
+        fornecedorId: parsed.fornecedorId || null,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        id: item.id,
+        nome: item.nome,
+        categoria: item.categoria,
+        unidade: item.unidade,
+        estoqueAtual: Number(item.estoqueAtual),
+        estoqueMinimo: Number(item.estoqueMinimo),
+        custoUnitario: Number(item.custoUnitario),
+        fornecedorId: item.fornecedorId ?? undefined,
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { message: "Dados invalidos", issues: error.flatten() },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json({ message: "Erro ao criar insumo" }, { status: 500 });
+  }
+}

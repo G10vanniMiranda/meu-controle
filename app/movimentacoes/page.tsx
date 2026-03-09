@@ -11,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useAppData } from "@/hooks/use-app-data";
 import { dateFormatter, moneyFormatter } from "@/lib/formatters";
-import { generateId } from "@/lib/id";
 import type { MovementType, StockMovement } from "@/lib/types";
 
 export default function MovimentacoesPage() {
@@ -32,7 +31,7 @@ export default function MovimentacoesPage() {
 
   if (!ready) return <p className="rounded-2xl border border-blue-900 bg-zinc-700 p-6 text-sm text-blue-100">Carregando...</p>;
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(null);
 
@@ -58,28 +57,42 @@ export default function MovimentacoesPage() {
       return;
     }
 
-    const movement: StockMovement = {
-      id: generateId("mov"),
-      data: new Date().toISOString().slice(0, 10),
-      itemId: form.itemId,
-      tipo: form.tipo,
-      quantidade,
-      observacao: form.observacao.trim() || "Movimentacao manual",
-    };
+    try {
+      const response = await fetch("/api/movimentacoes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itemId: form.itemId,
+          tipo: form.tipo,
+          quantidade,
+          observacao: form.observacao.trim() || undefined,
+        }),
+      });
+      const data = (await response.json()) as {
+        message?: string;
+        movement?: StockMovement;
+        updatedItem?: { id: string; estoqueAtual: number };
+      };
 
-    setMovements((prev) => [movement, ...prev]);
-    setInventory((prev) =>
-      prev.map((entry) => {
-        if (entry.id !== form.itemId) return entry;
-        const nextValue =
-          form.tipo === "entrada" ? entry.estoqueAtual + quantidade : entry.estoqueAtual - quantidade;
-        return { ...entry, estoqueAtual: nextValue };
-      }),
-    );
+      if (!response.ok || !data.movement || !data.updatedItem) {
+        setMessage(data.message ?? "Erro ao registrar movimentacao.");
+        return;
+      }
 
-    setForm({ itemId: "", tipo: "entrada", quantidade: "0", observacao: "" });
-    setMessage("Movimentacao registrada.");
-    setIsModalOpen(false);
+      setMovements((prev) => [data.movement as StockMovement, ...prev]);
+      setInventory((prev) =>
+        prev.map((entry) => {
+          if (entry.id !== data.updatedItem?.id) return entry;
+          return { ...entry, estoqueAtual: data.updatedItem.estoqueAtual };
+        }),
+      );
+
+      setForm({ itemId: "", tipo: "entrada", quantidade: "0", observacao: "" });
+      setMessage("Movimentacao registrada.");
+      setIsModalOpen(false);
+    } catch {
+      setMessage("Erro de conexao ao registrar movimentacao.");
+    }
   }
 
   return (
