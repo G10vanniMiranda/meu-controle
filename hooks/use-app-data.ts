@@ -8,23 +8,19 @@ import {
   defaultStockMovements,
   defaultSuppliers,
 } from "@/lib/mock-data";
-import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type { AccountEntry, CashFlowEntry, InventoryItem, StockMovement, Supplier } from "@/lib/types";
-import { useLocalStorageState } from "@/hooks/use-local-storage";
 
 export function useAppData() {
   const [inventory, setInventory] = useState<InventoryItem[]>(defaultInventoryItems);
   const [suppliers, setSuppliers] = useState<Supplier[]>(defaultSuppliers);
   const [movements, setMovements] = useState<StockMovement[]>(defaultStockMovements);
   const [accounts, setAccounts] = useState<AccountEntry[]>(defaultAccounts);
+  const [cashFlow, setCashFlow] = useState<CashFlowEntry[]>(defaultCashFlow);
   const [inventoryReady, setInventoryReady] = useState(false);
   const [suppliersReady, setSuppliersReady] = useState(false);
   const [movementsReady, setMovementsReady] = useState(false);
   const [accountsReady, setAccountsReady] = useState(false);
-  const [cashFlow, setCashFlow, cashFlowReady] = useLocalStorageState<CashFlowEntry[]>(
-    STORAGE_KEYS.cashFlow,
-    defaultCashFlow,
-  );
+  const [cashFlowReady, setCashFlowReady] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -43,6 +39,29 @@ export function useAppData() {
     }
 
     loadSuppliers();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadCashFlow() {
+      try {
+        const response = await fetch("/api/fluxo-caixa", { cache: "no-store" });
+        if (!response.ok) throw new Error("Falha ao carregar fluxo de caixa");
+        const data = (await response.json()) as CashFlowEntry[];
+        if (active) setCashFlow(data);
+      } catch {
+        if (active) setCashFlow(defaultCashFlow);
+      } finally {
+        if (active) setCashFlowReady(true);
+      }
+    }
+
+    loadCashFlow();
 
     return () => {
       active = false;

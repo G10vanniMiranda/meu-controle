@@ -37,7 +37,7 @@ export function Modal({ open, onClose, title, description, children, className }
       <button
         type="button"
         aria-label="Fechar modal"
-        className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        className="absolute inset-0 cursor-pointer bg-slate-950/70 backdrop-blur-sm"
         onClick={onClose}
       />
       <div
