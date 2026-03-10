@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +18,18 @@ const navItems = [
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  if (pathname === "/login") {
+    return null;
+  }
+
+  async function onLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <>
@@ -65,6 +76,12 @@ export function SidebarNav() {
                 );
               })}
             </nav>
+
+            <div className="mt-6 border-t border-blue-900/60 pt-4">
+              <Button variant="ghost" className="w-full justify-start" onClick={onLogout}>
+                Sair
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </aside>

@@ -35,11 +35,31 @@ npm run prisma:generate
 npm run prisma:migrate:dev
 ```
 
+Para aplicar migrations em producao (sem criar novas):
+
+```bash
+npm run prisma:migrate:deploy
+```
+
 5. Popule o banco com dados iniciais:
 
 ```bash
 npm run prisma:seed
 ```
+
+## Autenticacao basica (obrigatoria para producao)
+
+Configure no `.env`:
+
+```bash
+APP_ADMIN_EMAIL="admin@sushiflow.com"
+APP_ADMIN_PASSWORD="defina-uma-senha-forte"
+APP_AUTH_SECRET="defina-um-segredo-longo"
+```
+
+- A tela de login fica em `/login`.
+- As rotas de app e `/api/*` exigem sessao autenticada.
+- O cookie de sessao e HTTP-only e expira em 12 horas.
 
 ## Scripts
 
@@ -49,6 +69,7 @@ npm run prisma:seed
 - `npm run start`: sobe o build de producao
 - `npm run prisma:generate`: gera Prisma Client
 - `npm run prisma:migrate:dev`: roda migrations em ambiente de desenvolvimento
+- `npm run prisma:migrate:deploy`: aplica migrations pendentes em producao
 - `npm run prisma:seed`: popula o banco com dados iniciais para desenvolvimento
 
 ## Status do projeto
