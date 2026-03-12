@@ -8,8 +8,8 @@ import {
 } from "@/lib/auth";
 
 const loginSchema = z.object({
-  email: z.string().trim().email("email invalido"),
-  password: z.string().min(1, "senha obrigatoria"),
+  email: z.string().trim().email("email inválido"),
+  password: z.string().min(1, "senha obrigatória"),
 });
 
 export async function POST(request: Request) {
