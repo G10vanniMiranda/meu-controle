@@ -38,6 +38,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
+  if (pathname === "/login") {
+    return NextResponse.next();
+  }
+
   if (authenticated) {
     return NextResponse.next();
   }

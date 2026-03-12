@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { defaultInventoryItems } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
+import { isDatabaseUnavailableError } from "@/lib/db-error";
 
 const inventorySchema = z.object({
   nome: z.string().trim().min(1, "nome e obrigatorio"),
@@ -18,31 +19,39 @@ export async function GET() {
     return NextResponse.json(defaultInventoryItems);
   }
 
-  const items = await prisma.inventoryItem.findMany({
-    include: {
-      fornecedor: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const items = await prisma.inventoryItem.findMany({
+      include: {
+        fornecedor: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json(
-    items.map((item) => ({
-      id: item.id,
-      nome: item.nome,
-      categoria: item.categoria,
-      unidade: item.unidade,
-      estoqueAtual: Number(item.estoqueAtual),
-      estoqueMinimo: Number(item.estoqueMinimo),
-      custoUnitario: Number(item.custoUnitario),
-      fornecedorId: item.fornecedorId ?? undefined,
-      fornecedor: item.fornecedor
-        ? {
-            id: item.fornecedor.id,
-            nomeFantasia: item.fornecedor.nomeFantasia,
-          }
-        : null,
-    })),
-  );
+    return NextResponse.json(
+      items.map((item) => ({
+        id: item.id,
+        nome: item.nome,
+        categoria: item.categoria,
+        unidade: item.unidade,
+        estoqueAtual: Number(item.estoqueAtual),
+        estoqueMinimo: Number(item.estoqueMinimo),
+        custoUnitario: Number(item.custoUnitario),
+        fornecedorId: item.fornecedorId ?? undefined,
+        fornecedor: item.fornecedor
+          ? {
+              id: item.fornecedor.id,
+              nomeFantasia: item.fornecedor.nomeFantasia,
+            }
+          : null,
+      })),
+    );
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json(defaultInventoryItems);
+    }
+
+    return NextResponse.json({ message: "Erro ao carregar insumos" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -99,6 +108,10 @@ export async function POST(request: Request) {
         { message: "Dados invalidos", issues: error.flatten() },
         { status: 400 },
       );
+    }
+
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao criar insumo" }, { status: 500 });

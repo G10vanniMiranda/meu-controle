@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { defaultCashFlow } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
+import { isDatabaseUnavailableError } from "@/lib/db-error";
 
 const cashFlowSchema = z.object({
   data: z.string().trim().min(1, "data e obrigatoria"),
@@ -16,20 +17,28 @@ export async function GET() {
     return NextResponse.json(defaultCashFlow);
   }
 
-  const entries = await prisma.cashFlowEntry.findMany({
-    orderBy: { data: "desc" },
-  });
+  try {
+    const entries = await prisma.cashFlowEntry.findMany({
+      orderBy: { data: "desc" },
+    });
 
-  return NextResponse.json(
-    entries.map((entry) => ({
-      id: entry.id,
-      data: entry.data.toISOString().slice(0, 10),
-      tipo: entry.tipo,
-      categoria: entry.categoria,
-      descricao: entry.descricao,
-      valor: Number(entry.valor),
-    })),
-  );
+    return NextResponse.json(
+      entries.map((entry) => ({
+        id: entry.id,
+        data: entry.data.toISOString().slice(0, 10),
+        tipo: entry.tipo,
+        categoria: entry.categoria,
+        descricao: entry.descricao,
+        valor: Number(entry.valor),
+      })),
+    );
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json(defaultCashFlow);
+    }
+
+    return NextResponse.json({ message: "Erro ao carregar fluxo de caixa" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -71,6 +80,10 @@ export async function POST(request: Request) {
         { message: "Dados invalidos", issues: error.flatten() },
         { status: 400 },
       );
+    }
+
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao criar lancamento de caixa" }, { status: 500 });

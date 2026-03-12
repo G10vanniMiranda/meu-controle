@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { isDatabaseUnavailableError } from "@/lib/db-error";
 
 const paramsSchema = z.object({
   id: z.string().trim().min(1),
@@ -47,6 +48,10 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       );
     }
 
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
+    }
+
     return NextResponse.json({ message: "Erro ao atualizar fornecedor" }, { status: 500 });
   }
 }
@@ -67,7 +72,11 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
     });
 
     return new NextResponse(null, { status: 204 });
-  } catch {
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
+    }
+
     return NextResponse.json({ message: "Erro ao remover fornecedor" }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { defaultAccounts } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
+import { isDatabaseUnavailableError } from "@/lib/db-error";
 
 const accountSchema = z.object({
   descricao: z.string().trim().min(1, "descricao e obrigatoria"),
@@ -17,21 +18,29 @@ export async function GET() {
     return NextResponse.json(defaultAccounts);
   }
 
-  const accounts = await prisma.accountEntry.findMany({
-    orderBy: { vencimento: "desc" },
-  });
+  try {
+    const accounts = await prisma.accountEntry.findMany({
+      orderBy: { vencimento: "desc" },
+    });
 
-  return NextResponse.json(
-    accounts.map((account) => ({
-      id: account.id,
-      descricao: account.descricao,
-      tipo: account.tipo,
-      parceiro: account.parceiro,
-      vencimento: account.vencimento.toISOString().slice(0, 10),
-      valor: Number(account.valor),
-      status: account.status,
-    })),
-  );
+    return NextResponse.json(
+      accounts.map((account) => ({
+        id: account.id,
+        descricao: account.descricao,
+        tipo: account.tipo,
+        parceiro: account.parceiro,
+        vencimento: account.vencimento.toISOString().slice(0, 10),
+        valor: Number(account.valor),
+        status: account.status,
+      })),
+    );
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json(defaultAccounts);
+    }
+
+    return NextResponse.json({ message: "Erro ao carregar contas" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -75,6 +84,10 @@ export async function POST(request: Request) {
         { message: "Dados invalidos", issues: error.flatten() },
         { status: 400 },
       );
+    }
+
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao criar conta" }, { status: 500 });

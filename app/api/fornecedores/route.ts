@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { defaultSuppliers } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
+import { isDatabaseUnavailableError } from "@/lib/db-error";
 
 const supplierSchema = z.object({
   nomeFantasia: z.string().trim().min(1, "nomeFantasia e obrigatorio"),
@@ -16,11 +17,19 @@ export async function GET() {
     return NextResponse.json(defaultSuppliers);
   }
 
-  const suppliers = await prisma.supplier.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const suppliers = await prisma.supplier.findMany({
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json(suppliers);
+    return NextResponse.json(suppliers);
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json(defaultSuppliers);
+    }
+
+    return NextResponse.json({ message: "Erro ao carregar fornecedores" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -52,6 +61,10 @@ export async function POST(request: Request) {
         { message: "Dados invalidos", issues: error.flatten() },
         { status: 400 },
       );
+    }
+
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao criar fornecedor" }, { status: 500 });
