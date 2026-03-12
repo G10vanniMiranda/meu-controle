@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { isDatabaseUnavailableError } from "@/lib/db-error";
+import { getDatabaseErrorCode, isDatabaseUnavailableError } from "@/lib/db-error";
 
 const supplierSchema = z.object({
   nomeFantasia: z.string().trim().min(1, "nomeFantasia e obrigatorio"),
@@ -63,6 +63,10 @@ export async function POST(request: Request) {
         { message: "Dados invalidos", issues: error.flatten() },
         { status: 400 },
       );
+    }
+
+    if (getDatabaseErrorCode(error) === "P2002") {
+      return NextResponse.json({ message: "Documento ja cadastrado para outro fornecedor." }, { status: 409 });
     }
 
     if (isDatabaseUnavailableError(error)) {

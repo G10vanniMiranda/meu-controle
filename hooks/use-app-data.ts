@@ -14,6 +14,11 @@ export function useAppData() {
   const [movementsReady, setMovementsReady] = useState(false);
   const [accountsReady, setAccountsReady] = useState(false);
   const [cashFlowReady, setCashFlowReady] = useState(false);
+  const [loadErrorMessage, setLoadErrorMessage] = useState<string | null>(null);
+
+  function setLoadError(message: string) {
+    setLoadErrorMessage((current) => current ?? message);
+  }
 
   useEffect(() => {
     let active = true;
@@ -26,6 +31,7 @@ export function useAppData() {
         if (active) setSuppliers(data);
       } catch {
         if (active) setSuppliers([]);
+        if (active) setLoadError("Nao foi possivel carregar todos os dados do sistema.");
       } finally {
         if (active) setSuppliersReady(true);
       }
@@ -49,6 +55,7 @@ export function useAppData() {
         if (active) setCashFlow(data);
       } catch {
         if (active) setCashFlow([]);
+        if (active) setLoadError("Nao foi possivel carregar todos os dados do sistema.");
       } finally {
         if (active) setCashFlowReady(true);
       }
@@ -72,6 +79,7 @@ export function useAppData() {
         if (active) setInventory(data);
       } catch {
         if (active) setInventory([]);
+        if (active) setLoadError("Nao foi possivel carregar todos os dados do sistema.");
       } finally {
         if (active) setInventoryReady(true);
       }
@@ -95,6 +103,7 @@ export function useAppData() {
         if (active) setMovements(data);
       } catch {
         if (active) setMovements([]);
+        if (active) setLoadError("Nao foi possivel carregar todos os dados do sistema.");
       } finally {
         if (active) setMovementsReady(true);
       }
@@ -118,6 +127,7 @@ export function useAppData() {
         if (active) setAccounts(data);
       } catch {
         if (active) setAccounts([]);
+        if (active) setLoadError("Nao foi possivel carregar todos os dados do sistema.");
       } finally {
         if (active) setAccountsReady(true);
       }
@@ -141,6 +151,7 @@ export function useAppData() {
     setAccounts,
     cashFlow,
     setCashFlow,
+    loadErrorMessage,
     ready: inventoryReady && suppliersReady && movementsReady && accountsReady && cashFlowReady,
   };
 }

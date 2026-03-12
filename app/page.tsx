@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppData } from "@/hooks/use-app-data";
-import { dateFormatter, moneyFormatter } from "@/lib/formatters";
+import { formatDateOnly, moneyFormatter } from "@/lib/formatters";
 
 function statusBadge(status: "aberta" | "paga" | "atrasada") {
   if (status === "paga") return "success";
@@ -15,7 +15,7 @@ function statusBadge(status: "aberta" | "paga" | "atrasada") {
 }
 
 export default function DashboardPage() {
-  const { inventory, accounts, cashFlow, movements, ready } = useAppData();
+  const { inventory, accounts, cashFlow, movements, loadErrorMessage, ready } = useAppData();
 
   if (!ready) {
     return <p className="rounded-2xl border border-blue-900 bg-zinc-700 p-6 text-sm text-blue-100">Carregando...</p>;
@@ -56,13 +56,14 @@ export default function DashboardPage() {
   const cashFlowLabels = cashFlow
     .slice()
     .sort((a, b) => a.data.localeCompare(b.data))
-    .map((entry) => dateFormatter.format(new Date(entry.data)));
+    .map((entry) => formatDateOnly(entry.data));
 
   return (
     <PageShell
       title="Dashboard"
       subtitle="Visão executiva da operação do sushi bar com estoque, contas e fluxo de caixa."
     >
+      {loadErrorMessage ? <p className="rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-100">{loadErrorMessage}</p> : null}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardContent className="min-h-28 p-5">
@@ -126,7 +127,7 @@ export default function DashboardPage() {
                       <TableCell>{account.descricao}</TableCell>
                       <TableCell className="font-medium">{account.tipo}</TableCell>
                       <TableCell>{account.parceiro}</TableCell>
-                      <TableCell>{dateFormatter.format(new Date(account.vencimento))}</TableCell>
+                      <TableCell>{formatDateOnly(account.vencimento)}</TableCell>
                       <TableCell>{moneyFormatter.format(account.valor)}</TableCell>
                       <TableCell className="pr-0">
                         <Badge variant={statusBadge(account.status) as "success" | "warning" | "danger"}>
@@ -156,7 +157,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <p className="mt-1 text-sm text-blue-100/80">
-                      {dateFormatter.format(new Date(movement.data))} | Qtd: {movement.quantidade}
+                      {formatDateOnly(movement.data)} | Qtd: {movement.quantidade}
                     </p>
                   </li>
                 );
@@ -168,5 +169,4 @@ export default function DashboardPage() {
     </PageShell>
   );
 }
-
 

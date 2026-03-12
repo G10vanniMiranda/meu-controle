@@ -10,11 +10,11 @@ import { Select } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppData } from "@/hooks/use-app-data";
-import { dateFormatter, moneyFormatter } from "@/lib/formatters";
+import { formatDateOnly, moneyFormatter } from "@/lib/formatters";
 import type { MovementType, StockMovement } from "@/lib/types";
 
 export default function MovimentacoesPage() {
-  const { inventory, setInventory, movements, setMovements, ready } = useAppData();
+  const { inventory, setInventory, movements, setMovements, loadErrorMessage, ready } = useAppData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -110,6 +110,7 @@ export default function MovimentacoesPage() {
         </Button>
       }
     >
+      {loadErrorMessage ? <p className="rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-100">{loadErrorMessage}</p> : null}
       {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
 
       <Card>
@@ -135,7 +136,7 @@ export default function MovimentacoesPage() {
                   const amount = item ? movement.quantidade * item.custoUnitario : 0;
                   return (
                     <TableRow key={movement.id}>
-                      <TableCell>{dateFormatter.format(new Date(movement.data))}</TableCell>
+                      <TableCell>{formatDateOnly(movement.data)}</TableCell>
                       <TableCell>{item?.nome ?? "Item removido"}</TableCell>
                       <TableCell className={`font-semibold ${movement.tipo === "entrada" ? "text-blue-300" : "text-yellow-300"}`}>
                         {movement.tipo}
@@ -206,4 +207,3 @@ export default function MovimentacoesPage() {
     </PageShell>
   );
 }
-

@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { isDatabaseUnavailableError } from "@/lib/db-error";
+import { getDatabaseErrorCode, isDatabaseUnavailableError } from "@/lib/db-error";
 
 const paramsSchema = z.object({
   id: z.string().trim().min(1),
 });
 
 const inventoryUpdateSchema = z.object({
-  nome: z.string().trim().min(1, "nome é obrigatório"),
+  nome: z.string().trim().min(1, "nome e obrigatorio"),
   categoria: z.enum(["peixe", "arroz", "embalagem", "bebida", "tempero", "outros"]),
   unidade: z.enum(["kg", "un", "l"]),
-  estoqueAtual: z.coerce.number().min(0),
   estoqueMinimo: z.coerce.number().min(0),
   custoUnitario: z.coerce.number().min(0),
   fornecedorId: z.string().trim().optional(),
@@ -20,7 +19,7 @@ const inventoryUpdateSchema = z.object({
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
-      { message: "Banco não configurado. Defina DATABASE_URL para habilitar escrita." },
+      { message: "Banco nao configurado. Defina DATABASE_URL para habilitar escrita." },
       { status: 503 },
     );
   }
@@ -37,7 +36,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       });
 
       if (!supplierExists) {
-        return NextResponse.json({ message: "fornecedorId inválido" }, { status: 400 });
+        return NextResponse.json({ message: "fornecedorId invalido" }, { status: 400 });
       }
     }
 
@@ -47,7 +46,6 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         nome: parsed.nome,
         categoria: parsed.categoria,
         unidade: parsed.unidade,
-        estoqueAtual: parsed.estoqueAtual,
         estoqueMinimo: parsed.estoqueMinimo,
         custoUnitario: parsed.custoUnitario,
         fornecedorId: parsed.fornecedorId || null,
@@ -67,13 +65,17 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { message: "Dados inválidos", issues: error.flatten() },
+        { message: "Dados invalidos", issues: error.flatten() },
         { status: 400 },
       );
     }
 
+    if (getDatabaseErrorCode(error) === "P2025") {
+      return NextResponse.json({ message: "Insumo nao encontrado." }, { status: 404 });
+    }
+
     if (isDatabaseUnavailableError(error)) {
-      return NextResponse.json({ message: "Banco indisponível no momento." }, { status: 503 });
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao atualizar insumo" }, { status: 500 });
@@ -83,7 +85,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
-      { message: "Banco não configurado. Defina DATABASE_URL para habilitar escrita." },
+      { message: "Banco nao configurado. Defina DATABASE_URL para habilitar escrita." },
       { status: 503 },
     );
   }
@@ -97,8 +99,19 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
+    if (getDatabaseErrorCode(error) === "P2003") {
+      return NextResponse.json(
+        { message: "Nao e possivel excluir: insumo possui movimentacoes vinculadas." },
+        { status: 409 },
+      );
+    }
+
+    if (getDatabaseErrorCode(error) === "P2025") {
+      return NextResponse.json({ message: "Insumo nao encontrado." }, { status: 404 });
+    }
+
     if (isDatabaseUnavailableError(error)) {
-      return NextResponse.json({ message: "Banco indisponível no momento." }, { status: 503 });
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao remover insumo" }, { status: 500 });

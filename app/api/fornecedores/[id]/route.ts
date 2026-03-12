@@ -1,24 +1,24 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { isDatabaseUnavailableError } from "@/lib/db-error";
+import { getDatabaseErrorCode, isDatabaseUnavailableError } from "@/lib/db-error";
 
 const paramsSchema = z.object({
   id: z.string().trim().min(1),
 });
 
 const supplierUpdateSchema = z.object({
-  nomeFantasia: z.string().trim().min(1, "nomeFantasia é obrigatório"),
-  documento: z.string().trim().min(1, "documento é obrigatório"),
-  contato: z.string().trim().min(1, "contato é obrigatório"),
-  telefone: z.string().trim().min(1, "telefone é obrigatório"),
+  nomeFantasia: z.string().trim().min(1, "nomeFantasia e obrigatorio"),
+  documento: z.string().trim().min(1, "documento e obrigatorio"),
+  contato: z.string().trim().min(1, "contato e obrigatorio"),
+  telefone: z.string().trim().min(1, "telefone e obrigatorio"),
   observacoes: z.string().trim().optional(),
 });
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
-      { message: "Banco não configurado. Defina DATABASE_URL para habilitar escrita." },
+      { message: "Banco nao configurado. Defina DATABASE_URL para habilitar escrita." },
       { status: 503 },
     );
   }
@@ -43,13 +43,21 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { message: "Dados inválidos", issues: error.flatten() },
+        { message: "Dados invalidos", issues: error.flatten() },
         { status: 400 },
       );
     }
 
+    if (getDatabaseErrorCode(error) === "P2002") {
+      return NextResponse.json({ message: "Documento ja cadastrado para outro fornecedor." }, { status: 409 });
+    }
+
+    if (getDatabaseErrorCode(error) === "P2025") {
+      return NextResponse.json({ message: "Fornecedor nao encontrado." }, { status: 404 });
+    }
+
     if (isDatabaseUnavailableError(error)) {
-      return NextResponse.json({ message: "Banco indisponível no momento." }, { status: 503 });
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao atualizar fornecedor" }, { status: 500 });
@@ -59,7 +67,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
-      { message: "Banco não configurado. Defina DATABASE_URL para habilitar escrita." },
+      { message: "Banco nao configurado. Defina DATABASE_URL para habilitar escrita." },
       { status: 503 },
     );
   }
@@ -73,8 +81,19 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
+    if (getDatabaseErrorCode(error) === "P2003") {
+      return NextResponse.json(
+        { message: "Nao e possivel excluir: fornecedor vinculado a insumos cadastrados." },
+        { status: 409 },
+      );
+    }
+
+    if (getDatabaseErrorCode(error) === "P2025") {
+      return NextResponse.json({ message: "Fornecedor nao encontrado." }, { status: 404 });
+    }
+
     if (isDatabaseUnavailableError(error)) {
-      return NextResponse.json({ message: "Banco indisponível no momento." }, { status: 503 });
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao remover fornecedor" }, { status: 500 });

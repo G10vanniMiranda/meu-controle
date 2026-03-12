@@ -12,7 +12,7 @@ import { useAppData } from "@/hooks/use-app-data";
 import type { Supplier } from "@/lib/types";
 
 export default function FornecedoresPage() {
-  const { suppliers, setSuppliers, ready } = useAppData();
+  const { suppliers, setSuppliers, loadErrorMessage, ready } = useAppData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -130,6 +130,7 @@ export default function FornecedoresPage() {
         </Button>
       }
     >
+      {loadErrorMessage ? <p className="rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-100">{loadErrorMessage}</p> : null}
       {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
 
       <Card>
@@ -249,4 +250,3 @@ export default function FornecedoresPage() {
     </PageShell>
   );
 }
-

@@ -10,13 +10,13 @@ import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppData } from "@/hooks/use-app-data";
-import { dateFormatter, moneyFormatter } from "@/lib/formatters";
+import { formatDateOnly, moneyFormatter } from "@/lib/formatters";
 import type { CashFlowEntry, MovementType } from "@/lib/types";
 
 type CashFlowCategory = CashFlowEntry["categoria"];
 
 export default function CaixaPage() {
-  const { cashFlow, setCashFlow, ready } = useAppData();
+  const { cashFlow, setCashFlow, loadErrorMessage, ready } = useAppData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -61,13 +61,12 @@ export default function CaixaPage() {
 
   const lineChart = useMemo(() => {
     const sorted = cashFlow.slice().sort((a, b) => a.data.localeCompare(b.data));
-    let runningBalance = 0;
-
-    const values = sorted.map((entry) => {
-      runningBalance += entry.tipo === "entrada" ? entry.valor : -entry.valor;
-      return runningBalance;
-    });
-    const labels = sorted.map((entry) => dateFormatter.format(new Date(entry.data)));
+    const values = sorted.reduce<number[]>((acc, entry) => {
+      const previous = acc[acc.length - 1] ?? 0;
+      const next = previous + (entry.tipo === "entrada" ? entry.valor : -entry.valor);
+      return [...acc, next];
+    }, []);
+    const labels = sorted.map((entry) => formatDateOnly(entry.data));
 
     return { values, labels };
   }, [cashFlow]);
@@ -140,6 +139,7 @@ export default function CaixaPage() {
         </Button>
       }
     >
+      {loadErrorMessage ? <p className="rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-100">{loadErrorMessage}</p> : null}
       {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -197,7 +197,7 @@ export default function CaixaPage() {
               <TableBody>
                 {cashFlow.map((entry) => (
                   <TableRow key={entry.id}>
-                    <TableCell>{dateFormatter.format(new Date(entry.data))}</TableCell>
+                    <TableCell>{formatDateOnly(entry.data)}</TableCell>
                     <TableCell className={entry.tipo === "entrada" ? "text-blue-300" : "text-yellow-300"}>
                       {entry.tipo}
                     </TableCell>

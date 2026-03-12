@@ -15,3 +15,11 @@ export function isDatabaseUnavailableError(error: unknown) {
 
   return false;
 }
+
+export function getDatabaseErrorCode(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code;
+  }
+
+  return null;
+}

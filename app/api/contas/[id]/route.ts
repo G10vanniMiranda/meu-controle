@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { isDatabaseUnavailableError } from "@/lib/db-error";
+import { getDatabaseErrorCode, isDatabaseUnavailableError } from "@/lib/db-error";
 
 const paramsSchema = z.object({
   id: z.string().trim().min(1),
 });
 
 const accountUpdateSchema = z.object({
-  descricao: z.string().trim().min(1, "descrição é obrigatória"),
+  descricao: z.string().trim().min(1, "descricao e obrigatoria"),
   tipo: z.enum(["pagar", "receber"]),
-  parceiro: z.string().trim().min(1, "parceiro é obrigatório"),
-  vencimento: z.string().trim().min(1, "vencimento é obrigatório"),
+  parceiro: z.string().trim().min(1, "parceiro e obrigatorio"),
+  vencimento: z.string().trim().min(1, "vencimento e obrigatorio"),
   valor: z.coerce.number().gt(0),
   status: z.enum(["aberta", "paga", "atrasada"]),
 });
@@ -19,7 +19,7 @@ const accountUpdateSchema = z.object({
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
-      { message: "Banco não configurado. Defina DATABASE_URL para habilitar escrita." },
+      { message: "Banco nao configurado. Defina DATABASE_URL para habilitar escrita." },
       { status: 503 },
     );
   }
@@ -53,13 +53,17 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { message: "Dados inválidos", issues: error.flatten() },
+        { message: "Dados invalidos", issues: error.flatten() },
         { status: 400 },
       );
     }
 
+    if (getDatabaseErrorCode(error) === "P2025") {
+      return NextResponse.json({ message: "Conta nao encontrada." }, { status: 404 });
+    }
+
     if (isDatabaseUnavailableError(error)) {
-      return NextResponse.json({ message: "Banco indisponível no momento." }, { status: 503 });
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao atualizar conta" }, { status: 500 });
@@ -69,7 +73,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
-      { message: "Banco não configurado. Defina DATABASE_URL para habilitar escrita." },
+      { message: "Banco nao configurado. Defina DATABASE_URL para habilitar escrita." },
       { status: 503 },
     );
   }
@@ -83,8 +87,12 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
+    if (getDatabaseErrorCode(error) === "P2025") {
+      return NextResponse.json({ message: "Conta nao encontrada." }, { status: 404 });
+    }
+
     if (isDatabaseUnavailableError(error)) {
-      return NextResponse.json({ message: "Banco indisponível no momento." }, { status: 503 });
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao remover conta" }, { status: 500 });

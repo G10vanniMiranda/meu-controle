@@ -11,7 +11,7 @@ import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppData } from "@/hooks/use-app-data";
-import { dateFormatter, moneyFormatter } from "@/lib/formatters";
+import { formatDateOnly, moneyFormatter } from "@/lib/formatters";
 import type { AccountEntry, AccountStatus, AccountType } from "@/lib/types";
 
 function statusClass(status: AccountStatus) {
@@ -21,7 +21,7 @@ function statusClass(status: AccountStatus) {
 }
 
 export default function ContasPage() {
-  const { accounts, setAccounts, ready } = useAppData();
+  const { accounts, setAccounts, loadErrorMessage, ready } = useAppData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -168,6 +168,7 @@ export default function ContasPage() {
         </Button>
       }
     >
+      {loadErrorMessage ? <p className="rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-100">{loadErrorMessage}</p> : null}
       {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -225,7 +226,7 @@ export default function ContasPage() {
                     <TableCell>{account.descricao}</TableCell>
                     <TableCell>{account.tipo}</TableCell>
                     <TableCell>{account.parceiro}</TableCell>
-                    <TableCell>{dateFormatter.format(new Date(account.vencimento))}</TableCell>
+                    <TableCell>{formatDateOnly(account.vencimento)}</TableCell>
                     <TableCell>{moneyFormatter.format(account.valor)}</TableCell>
                     <TableCell>
                       <Badge variant={statusClass(account.status) as "success" | "warning" | "danger"}>
@@ -340,4 +341,3 @@ export default function ContasPage() {
     </PageShell>
   );
 }
-

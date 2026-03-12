@@ -16,7 +16,7 @@ const categories: InventoryCategory[] = ["peixe", "arroz", "embalagem", "bebida"
 const units: UnitType[] = ["kg", "un", "l"];
 
 export default function InsumosPage() {
-  const { inventory, setInventory, suppliers, ready } = useAppData();
+  const { inventory, setInventory, suppliers, loadErrorMessage, ready } = useAppData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -24,7 +24,6 @@ export default function InsumosPage() {
     nome: "",
     categoria: "outros" as InventoryCategory,
     unidade: "un" as UnitType,
-    estoqueAtual: "0",
     estoqueMinimo: "0",
     custoUnitario: "0",
     fornecedorId: "",
@@ -37,7 +36,6 @@ export default function InsumosPage() {
       nome: "",
       categoria: "outros",
       unidade: "un",
-      estoqueAtual: "0",
       estoqueMinimo: "0",
       custoUnitario: "0",
       fornecedorId: "",
@@ -58,7 +56,6 @@ export default function InsumosPage() {
       nome: item.nome,
       categoria: item.categoria,
       unidade: item.unidade,
-      estoqueAtual: String(item.estoqueAtual),
       estoqueMinimo: String(item.estoqueMinimo),
       custoUnitario: String(item.custoUnitario),
       fornecedorId: item.fornecedorId ?? "",
@@ -81,7 +78,7 @@ export default function InsumosPage() {
       setInventory((prev) => prev.filter((entry) => entry.id !== id));
       setMessage("Insumo removido com sucesso.");
     } catch {
-      setMessage("Erro de conexão ao remover insumo.");
+      setMessage("Erro de conexao ao remover insumo.");
     }
   }
 
@@ -94,10 +91,9 @@ export default function InsumosPage() {
       return;
     }
 
-    const estoqueAtual = Number(form.estoqueAtual);
     const estoqueMinimo = Number(form.estoqueMinimo);
     const custoUnitario = Number(form.custoUnitario);
-    if ([estoqueAtual, estoqueMinimo, custoUnitario].some((value) => Number.isNaN(value) || value < 0)) {
+    if ([estoqueMinimo, custoUnitario].some((value) => Number.isNaN(value) || value < 0)) {
       setMessage("Campos numericos invalidos.");
       return;
     }
@@ -110,7 +106,6 @@ export default function InsumosPage() {
           nome: form.nome.trim(),
           categoria: form.categoria,
           unidade: form.unidade,
-          estoqueAtual,
           estoqueMinimo,
           custoUnitario,
           fornecedorId: form.fornecedorId || undefined,
@@ -128,26 +123,27 @@ export default function InsumosPage() {
         setMessage("Insumo atualizado com sucesso.");
       } else {
         setInventory((prev) => [data as InventoryItem, ...prev]);
-        setMessage("Insumo cadastrado com sucesso.");
+        setMessage("Insumo cadastrado com sucesso. Ajuste o estoque em Movimentacoes.");
       }
 
       resetForm();
       setIsModalOpen(false);
     } catch {
-      setMessage("Erro de conexão ao salvar insumo.");
+      setMessage("Erro de conexao ao salvar insumo.");
     }
   }
 
   return (
     <PageShell
       title="Cadastro de Insumos"
-      subtitle="Gestão completa dos itens de estoque do sushi bar."
+      subtitle="Cadastro base do estoque. Entradas e saidas devem ser feitas em Movimentacoes."
       actions={
         <Button onClick={startCreate}>
           Novo insumo
         </Button>
       }
     >
+      {loadErrorMessage ? <p className="rounded-lg bg-red-950/60 px-3 py-2 text-sm text-red-100">{loadErrorMessage}</p> : null}
       {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
 
       <Card>
@@ -162,10 +158,10 @@ export default function InsumosPage() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Estoque</TableHead>
-                  <TableHead>Índice mínimo</TableHead>
+                  <TableHead>Indice minimo</TableHead>
                   <TableHead>Custo</TableHead>
                   <TableHead>Fornecedor</TableHead>
-                  <TableHead className="pr-0">Ações</TableHead>
+                  <TableHead className="pr-0">Acoes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -238,7 +234,7 @@ export default function InsumosPage() {
           resetForm();
         }}
         title={editingItemId ? "Editar insumo" : "Novo insumo"}
-        description={editingItemId ? "Atualize os dados do item de estoque." : "Cadastre um item de estoque com valores, unidade e fornecedor."}
+        description="Cadastre os dados base do item. O estoque atual e controlado em Movimentacoes."
       >
         {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
         <form className="mt-4 space-y-3" onSubmit={onSubmit}>
@@ -269,22 +265,14 @@ export default function InsumosPage() {
               ))}
             </Select>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.estoqueAtual}
-              onChange={(event) => setForm((prev) => ({ ...prev, estoqueAtual: event.target.value }))}
-              placeholder="Atual"
-            />
+          <div className="grid grid-cols-2 gap-3">
             <Input
               type="number"
               min="0"
               step="0.01"
               value={form.estoqueMinimo}
               onChange={(event) => setForm((prev) => ({ ...prev, estoqueMinimo: event.target.value }))}
-              placeholder="Minimo"
+              placeholder="Estoque minimo"
             />
             <Input
               type="number"
@@ -292,7 +280,7 @@ export default function InsumosPage() {
               step="0.01"
               value={form.custoUnitario}
               onChange={(event) => setForm((prev) => ({ ...prev, custoUnitario: event.target.value }))}
-              placeholder="Custo"
+              placeholder="Custo unitario"
             />
           </div>
           <Select
@@ -306,6 +294,9 @@ export default function InsumosPage() {
               </option>
             ))}
           </Select>
+          <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-xs text-blue-100/80">
+            Estoque atual e atualizado apenas na secao Movimentacoes.
+          </p>
           <Button className="w-full" type="submit">
             {editingItemId ? "Salvar alteracoes" : "Cadastrar insumo"}
           </Button>
@@ -314,4 +305,3 @@ export default function InsumosPage() {
     </PageShell>
   );
 }
-
