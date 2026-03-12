@@ -50,7 +50,7 @@ export function SidebarNav() {
           <CardContent className="p-4">
             <div className="mb-6 rounded-xl bg-zinc-700 p-4 text-white">
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs uppercase tracking-[0.2em] text-blue-200">SushiFlow</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-blue-200">Mahal</p>
                 <Badge variant="warning">Pro</Badge>
               </div>
               <h1 className="mt-1 text-xl font-semibold text-yellow-300">ERP Profissional</h1>

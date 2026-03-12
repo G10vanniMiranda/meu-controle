@@ -48,7 +48,7 @@ export default function LoginPage() {
     <section className="flex min-h-[80vh] items-center justify-center p-4">
       <Card className="w-full max-w-md border-blue-900/70 bg-zinc-800/90 shadow-[0_20px_60px_rgba(2,6,23,0.5)] backdrop-blur">
         <CardHeader className="space-y-2">
-          <CardTitle>Entrar no SushiFlow ERP</CardTitle>
+          <CardTitle>Entrar no Mahal ERP</CardTitle>
           <p className="text-sm text-blue-100/80">Acesse com suas credenciais de administrador.</p>
         </CardHeader>
         <CardContent>
@@ -58,7 +58,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@sushiflow.com"
+                placeholder="admin@mahalsushi.com"
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}

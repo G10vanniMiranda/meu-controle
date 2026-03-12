@@ -1,6 +1,6 @@
-# SushiFlow ERP
+# Mahal ERP
 
-Sistema web para controle de estoque, fornecedores, contas e movimentacoes de um sushi bar.
+Sistema web para controle de estoque, fornecedores, contas e movimentacoes do Mahal Sushi.
 
 ## Stack atual
 
@@ -62,9 +62,15 @@ npm run prisma:seed
 Configure no `.env`:
 
 ```bash
-APP_ADMIN_EMAIL="admin@sushiflow.com"
-APP_ADMIN_PASSWORD="defina-uma-senha-forte"
+APP_ADMIN_EMAIL="admin@mahalsushi.com"
+APP_ADMIN_PASSWORD_HASH="pbkdf2_sha256$210000$SEU_SALT_HEX$SEU_HASH_HEX"
 APP_AUTH_SECRET="defina-um-segredo-longo"
+```
+
+Para gerar o hash da senha de admin:
+
+```bash
+npm run auth:hash -- "sua-senha-forte"
 ```
 
 - A tela de login fica em `/login`.
