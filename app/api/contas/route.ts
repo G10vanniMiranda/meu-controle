@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { defaultAccounts } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
 import { isDatabaseUnavailableError } from "@/lib/db-error";
 
@@ -15,7 +14,10 @@ const accountSchema = z.object({
 
 export async function GET() {
   if (!process.env.DATABASE_URL) {
-    return NextResponse.json(defaultAccounts);
+    return NextResponse.json(
+      { message: "Banco nao configurado. Defina DATABASE_URL para leitura e escrita." },
+      { status: 503 },
+    );
   }
 
   try {
@@ -36,7 +38,7 @@ export async function GET() {
     );
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      return NextResponse.json(defaultAccounts);
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao carregar contas" }, { status: 500 });

@@ -75,7 +75,7 @@ export default function MovimentacoesPage() {
       };
 
       if (!response.ok || !data.movement || !data.updatedItem) {
-        setMessage(data.message ?? "Erro ao registrar movimentacao.");
+        setMessage(data.message ?? "Erro ao registrar movimentação.");
         return;
       }
 
@@ -88,17 +88,17 @@ export default function MovimentacoesPage() {
       );
 
       setForm({ itemId: "", tipo: "entrada", quantidade: "0", observacao: "" });
-      setMessage("Movimentacao registrada.");
+      setMessage("Movimentação registrada.");
       setIsModalOpen(false);
     } catch {
-      setMessage("Erro de conexao ao registrar movimentacao.");
+      setMessage("Erro de conexão ao registrar movimentação.");
     }
   }
 
   return (
     <PageShell
-      title="Entradas e Saidas"
-      subtitle="Controle de movimentacao de estoque com validacao de saldo."
+      title="Entradas e Saídas"
+      subtitle="Controle de movimentação de estoque com validação de saldo."
       actions={
         <Button
           onClick={() => {
@@ -106,7 +106,7 @@ export default function MovimentacoesPage() {
             setIsModalOpen(true);
           }}
         >
-          Nova movimentacao
+          Nova movimentação
         </Button>
       }
     >
@@ -114,7 +114,7 @@ export default function MovimentacoesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Historico de movimentacoes</CardTitle>
+          <CardTitle>Histórico de movimentações</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -125,7 +125,7 @@ export default function MovimentacoesPage() {
                   <TableHead>Item</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Quantidade</TableHead>
-                  <TableHead>Observacao</TableHead>
+                  <TableHead>Observação</TableHead>
                   <TableHead className="pr-0">Valor aprox.</TableHead>
                 </TableRow>
               </TableHeader>
@@ -155,53 +155,53 @@ export default function MovimentacoesPage() {
       <Modal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Nova movimentacao"
-        description="Registre entradas e saidas com validacao de saldo em estoque."
+        title="Nova movimentação"
+        description="Registre entradas e saídas com validação de saldo em estoque."
       >
         {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
         <form className="mt-4 space-y-3" onSubmit={onSubmit}>
+          <Select
+            value={form.itemId}
+            onChange={(event) => setForm((prev) => ({ ...prev, itemId: event.target.value }))}
+          >
+            <option value="">Selecione o item</option>
+            {inventory.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.nome}
+              </option>
+            ))}
+          </Select>
+          <div className="grid grid-cols-2 gap-3">
             <Select
-              value={form.itemId}
-              onChange={(event) => setForm((prev) => ({ ...prev, itemId: event.target.value }))}
+              value={form.tipo}
+              onChange={(event) => setForm((prev) => ({ ...prev, tipo: event.target.value as MovementType }))}
             >
-              <option value="">Selecione o item</option>
-              {inventory.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nome}
-                </option>
-              ))}
+              <option value="entrada">entrada</option>
+              <option value="saida">saída</option>
             </Select>
-            <div className="grid grid-cols-2 gap-3">
-              <Select
-                value={form.tipo}
-                onChange={(event) => setForm((prev) => ({ ...prev, tipo: event.target.value as MovementType }))}
-              >
-                <option value="entrada">entrada</option>
-                <option value="saida">saida</option>
-              </Select>
-              <Input
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={form.quantidade}
-                onChange={(event) => setForm((prev) => ({ ...prev, quantidade: event.target.value }))}
-                placeholder="Quantidade"
-              />
-            </div>
-            <Textarea
-              value={form.observacao}
-              onChange={(event) => setForm((prev) => ({ ...prev, observacao: event.target.value }))}
-              placeholder="Observacao"
+            <Input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={form.quantidade}
+              onChange={(event) => setForm((prev) => ({ ...prev, quantidade: event.target.value }))}
+              placeholder="Quantidade"
             />
-            {selectedItem ? (
-              <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-xs text-blue-100/80">
-                Estoque atual: {selectedItem.estoqueAtual} {selectedItem.unidade}
-              </p>
-            ) : null}
-            <Button className="w-full" type="submit">
-              Registrar movimentacao
-            </Button>
-          </form>
+          </div>
+          <Textarea
+            value={form.observacao}
+            onChange={(event) => setForm((prev) => ({ ...prev, observacao: event.target.value }))}
+            placeholder="Observação"
+          />
+          {selectedItem ? (
+            <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-xs text-blue-100/80">
+              Estoque atual: {selectedItem.estoqueAtual} {selectedItem.unidade}
+            </p>
+          ) : null}
+          <Button className="w-full" type="submit">
+            Registrar movimentação
+          </Button>
+        </form>
       </Modal>
     </PageShell>
   );

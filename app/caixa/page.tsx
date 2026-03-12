@@ -81,13 +81,13 @@ export default function CaixaPage() {
     setMessage(null);
 
     if (!form.data || !form.descricao.trim()) {
-      setMessage("Preencha data e descricao.");
+      setMessage("Preencha data e descrição.");
       return;
     }
 
     const valor = Number(form.valor);
     if (Number.isNaN(valor) || valor <= 0) {
-      setMessage("Valor invalido.");
+      setMessage("Valor inválido.");
       return;
     }
 
@@ -106,12 +106,12 @@ export default function CaixaPage() {
 
       const data = (await response.json()) as Partial<CashFlowEntry> & { message?: string };
       if (!response.ok) {
-        setMessage(data.message ?? "Erro ao registrar lancamento de caixa.");
+        setMessage(data.message ?? "Erro ao registrar lançamento de caixa.");
         return;
       }
 
       setCashFlow((prev) => [data as CashFlowEntry, ...prev]);
-      setMessage("Lancamento registrado com sucesso.");
+      setMessage("Lançamento registrado com sucesso.");
       setForm({
         data: "",
         tipo: "entrada",
@@ -121,14 +121,14 @@ export default function CaixaPage() {
       });
       setIsModalOpen(false);
     } catch {
-      setMessage("Erro de conexao ao registrar lancamento.");
+      setMessage("Erro de conexão ao registrar lançamento.");
     }
   }
 
   return (
     <PageShell
       title="Controle de Caixa"
-      subtitle="Acompanhe o saldo atual do caixa e registre entradas e saidas."
+      subtitle="Acompanhe o saldo atual do caixa e registre entradas e saídas."
       actions={
         <Button
           onClick={() => {
@@ -136,7 +136,7 @@ export default function CaixaPage() {
             setIsModalOpen(true);
           }}
         >
-          Novo lancamento
+          Novo lançamento
         </Button>
       }
     >
@@ -162,27 +162,27 @@ export default function CaixaPage() {
         <Card>
           <CardContent className="min-h-28 p-5">
             <div className="mb-4 h-1.5 w-10 rounded-full bg-yellow-400/90" />
-            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Total de saidas</p>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Total de saídas</p>
             <p className="mt-2 text-4xl font-bold leading-none text-yellow-300">{moneyFormatter.format(summary.saidas)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="min-h-28 p-5">
             <div className="mb-4 h-1.5 w-10 rounded-full bg-blue-300/90" />
-            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Lancamentos</p>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Lançamentos</p>
             <p className="mt-2 text-4xl font-bold leading-none text-blue-50">{cashFlow.length}</p>
           </CardContent>
         </Card>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <LineChartCard title="Evolucao do saldo de caixa" values={lineChart.values} labels={lineChart.labels} />
+        <LineChartCard title="Evolução do saldo de caixa" values={lineChart.values} labels={lineChart.labels} />
         <MiniBarChart title="Valores por categoria" data={categoryChart} />
       </section>
 
       <Card>
         <CardContent className="p-5">
-          <h3 className="mb-4 text-base font-semibold text-yellow-300">Historico de lancamentos de caixa</h3>
+          <h3 className="mb-4 text-base font-semibold text-yellow-300">Histórico de lançamentos de caixa</h3>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -190,7 +190,7 @@ export default function CaixaPage() {
                   <TableHead>Data</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Categoria</TableHead>
-                  <TableHead>Descricao</TableHead>
+                  <TableHead>Descrição</TableHead>
                   <TableHead className="pr-0">Valor</TableHead>
                 </TableRow>
               </TableHeader>
@@ -215,8 +215,8 @@ export default function CaixaPage() {
       <Modal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Novo lancamento de caixa"
-        description="Registre entradas e saidas para atualizar o saldo do caixa."
+        title="Novo lançamento de caixa"
+        description="Registre entradas e saídas para atualizar o saldo do caixa."
       >
         {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
         <form className="mt-4 space-y-3" onSubmit={onSubmit}>
@@ -250,12 +250,12 @@ export default function CaixaPage() {
             </Select>
           </div>
           <Input
-            placeholder="Descricao"
+            placeholder="Descrição"
             value={form.descricao}
             onChange={(event) => setForm((prev) => ({ ...prev, descricao: event.target.value }))}
           />
           <Button className="w-full" type="submit">
-            Registrar lancamento
+            Registrar lançamento
           </Button>
         </form>
       </Modal>

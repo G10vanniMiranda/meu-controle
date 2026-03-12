@@ -91,7 +91,7 @@ export default function ContasPage() {
 
   async function onDelete(id: string) {
     setMessage(null);
-    if (!window.confirm("Deseja realmente excluir esta conta?")) return;
+    if (!window.confirm("Deseja realmente excluir está conta?")) return;
 
     try {
       const response = await fetch(`/api/contas/${id}`, { method: "DELETE" });
@@ -104,7 +104,7 @@ export default function ContasPage() {
       setAccounts((prev) => prev.filter((entry) => entry.id !== id));
       setMessage("Conta removida com sucesso.");
     } catch {
-      setMessage("Erro de conexao ao remover conta.");
+      setMessage("Erro de conexão ao remover conta.");
     }
   }
 
@@ -113,13 +113,13 @@ export default function ContasPage() {
     setMessage(null);
 
     if (!form.descricao.trim() || !form.parceiro.trim() || !form.vencimento) {
-      setMessage("Preencha descricao, parceiro e vencimento.");
+      setMessage("Preencha descrição, parceiro e vencimento.");
       return;
     }
 
     const valor = Number(form.valor);
     if (Number.isNaN(valor) || valor <= 0) {
-      setMessage("Valor invalido.");
+      setMessage("Valor inválido.");
       return;
     }
 
@@ -173,30 +173,30 @@ export default function ContasPage() {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardContent className="min-h-28 p-5">
-          <div className="mb-4 h-1.5 w-10 rounded-full bg-yellow-400/90" />
-          <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Contas a pagar</p>
-          <p className="mt-2 text-4xl font-bold leading-none text-yellow-300">{moneyFormatter.format(summary.pagar)}</p>
+            <div className="mb-4 h-1.5 w-10 rounded-full bg-yellow-400/90" />
+            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Contas a pagar</p>
+            <p className="mt-2 text-4xl font-bold leading-none text-yellow-300">{moneyFormatter.format(summary.pagar)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="min-h-28 p-5">
-          <div className="mb-4 h-1.5 w-10 rounded-full bg-blue-400/90" />
-          <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Contas a receber</p>
-          <p className="mt-2 text-4xl font-bold leading-none text-blue-300">{moneyFormatter.format(summary.receber)}</p>
+            <div className="mb-4 h-1.5 w-10 rounded-full bg-blue-400/90" />
+            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Contas a receber</p>
+            <p className="mt-2 text-4xl font-bold leading-none text-blue-300">{moneyFormatter.format(summary.receber)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="min-h-28 p-5">
-          <div className="mb-4 h-1.5 w-10 rounded-full bg-blue-300/80" />
-          <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Total de contas</p>
-          <p className="mt-2 text-4xl font-bold leading-none text-blue-50">{accounts.length}</p>
+            <div className="mb-4 h-1.5 w-10 rounded-full bg-blue-300/80" />
+            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Total de contas</p>
+            <p className="mt-2 text-4xl font-bold leading-none text-blue-50">{accounts.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="min-h-28 p-5">
-          <div className="mb-4 h-1.5 w-10 rounded-full bg-yellow-300/80" />
-          <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Saldo previsto</p>
-          <p className="mt-2 text-4xl font-bold leading-none text-blue-50">{moneyFormatter.format(summary.receber - summary.pagar)}</p>
+            <div className="mb-4 h-1.5 w-10 rounded-full bg-yellow-300/80" />
+            <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200/70">Saldo previsto</p>
+            <p className="mt-2 text-4xl font-bold leading-none text-blue-50">{moneyFormatter.format(summary.receber - summary.pagar)}</p>
           </CardContent>
         </Card>
       </section>
@@ -205,77 +205,77 @@ export default function ContasPage() {
 
       <Card>
         <CardContent className="p-5">
-        <h3 className="mb-4 text-base font-semibold text-yellow-300">Tabela de contas</h3>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b border-blue-900/60 text-blue-200">
-                <TableHead>Descricao</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Parceiro</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="pr-0">Acoes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {accounts.map((account) => (
-                <TableRow key={account.id}>
-                  <TableCell>{account.descricao}</TableCell>
-                  <TableCell>{account.tipo}</TableCell>
-                  <TableCell>{account.parceiro}</TableCell>
-                  <TableCell>{dateFormatter.format(new Date(account.vencimento))}</TableCell>
-                  <TableCell>{moneyFormatter.format(account.valor)}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusClass(account.status) as "success" | "warning" | "danger"}>
-                      {account.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="pr-0">
-                    <div className="flex items-center gap-2">
-                      <Button type="button" size="sm" variant="ghost" onClick={() => startEdit(account)}>
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 24 24"
-                          className="h-4 w-4 text-amber-300"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 20h9" />
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                        </svg>
-                        <span className="sr-only">Editar</span>
-                      </Button>
-                      <Button type="button" size="sm" variant="ghost" onClick={() => onDelete(account.id)}>
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 24 24"
-                          className="h-4 w-4 text-red-400"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M3 6h18" />
-                          <path d="M8 6V4h8v2" />
-                          <path d="M19 6l-1 14H6L5 6" />
-                          <path d="M10 11v6" />
-                          <path d="M14 11v6" />
-                        </svg>
-                        <span className="sr-only">Excluir</span>
-                      </Button>
-                    </div>
-                  </TableCell>
+          <h3 className="mb-4 text-base font-semibold text-yellow-300">Tabela de contas</h3>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-blue-900/60 text-blue-200">
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Parceiro</TableHead>
+                  <TableHead>Vencimento</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="pr-0">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {accounts.map((account) => (
+                  <TableRow key={account.id}>
+                    <TableCell>{account.descricao}</TableCell>
+                    <TableCell>{account.tipo}</TableCell>
+                    <TableCell>{account.parceiro}</TableCell>
+                    <TableCell>{dateFormatter.format(new Date(account.vencimento))}</TableCell>
+                    <TableCell>{moneyFormatter.format(account.valor)}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusClass(account.status) as "success" | "warning" | "danger"}>
+                        {account.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="pr-0">
+                      <div className="flex items-center gap-2">
+                        <Button type="button" size="sm" variant="ghost" onClick={() => startEdit(account)}>
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            className="h-4 w-4 text-amber-300"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                          <span className="sr-only">Editar</span>
+                        </Button>
+                        <Button type="button" size="sm" variant="ghost" onClick={() => onDelete(account.id)}>
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            className="h-4 w-4 text-red-400"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4h8v2" />
+                            <path d="M19 6l-1 14H6L5 6" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                          </svg>
+                          <span className="sr-only">Excluir</span>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 

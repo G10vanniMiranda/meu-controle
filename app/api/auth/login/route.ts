@@ -15,7 +15,7 @@ const loginSchema = z.object({
 export async function POST(request: Request) {
   if (!isAuthConfigured()) {
     return NextResponse.json(
-      { message: "Autenticacao nao configurada no ambiente." },
+      { message: "Autenticação não configurada no ambiente." },
       { status: 503 },
     );
   }
@@ -25,13 +25,13 @@ export async function POST(request: Request) {
     const parsed = loginSchema.parse(body);
 
     if (!(await isValidAdminCredentials(parsed.email, parsed.password))) {
-      return NextResponse.json({ message: "Email ou senha invalidos." }, { status: 401 });
+      return NextResponse.json({ message: "Email ou senha inválidos." }, { status: 401 });
     }
 
     const sessionToken = await createSessionToken();
     if (!sessionToken) {
       return NextResponse.json(
-        { message: "Falha ao criar sessao de autenticacao." },
+        { message: "Falha ao criar sessão de autenticação." },
         { status: 500 },
       );
     }
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { message: "Dados invalidos", issues: error.flatten() },
+        { message: "Dados inválidos", issues: error.flatten() },
         { status: 400 },
       );
     }

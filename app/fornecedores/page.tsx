@@ -71,7 +71,7 @@ export default function FornecedoresPage() {
       setSuppliers((prev) => prev.filter((entry) => entry.id !== id));
       setMessage("Fornecedor removido com sucesso.");
     } catch {
-      setMessage("Erro de conexao ao remover fornecedor.");
+      setMessage("Erro de conexão ao remover fornecedor.");
     }
   }
 
@@ -80,7 +80,7 @@ export default function FornecedoresPage() {
     setMessage(null);
 
     if (!form.nomeFantasia.trim() || !form.documento.trim()) {
-      setMessage("Nome fantasia e documento sao obrigatorios.");
+      setMessage("Nome fantasia e documento são obrigatórios.");
       return;
     }
 
@@ -88,16 +88,16 @@ export default function FornecedoresPage() {
       const response = await fetch(
         editingSupplierId ? `/api/fornecedores/${editingSupplierId}` : "/api/fornecedores",
         {
-        method: editingSupplierId ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nomeFantasia: form.nomeFantasia.trim(),
-          documento: form.documento.trim(),
-          contato: form.contato.trim() || "Nao informado",
-          telefone: form.telefone.trim() || "Nao informado",
-          observacoes: form.observacoes.trim() || undefined,
-        }),
-      });
+          method: editingSupplierId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nomeFantasia: form.nomeFantasia.trim(),
+            documento: form.documento.trim(),
+            contato: form.contato.trim() || "Não informado",
+            telefone: form.telefone.trim() || "Não informado",
+            observacoes: form.observacoes.trim() || undefined,
+          }),
+        });
       const data = (await response.json()) as Partial<Supplier> & { message?: string };
 
       if (!response.ok) {
@@ -116,14 +116,14 @@ export default function FornecedoresPage() {
       resetForm();
       setIsModalOpen(false);
     } catch {
-      setMessage("Erro de conexao ao cadastrar fornecedor.");
+      setMessage("Erro de conexão ao cadastrar fornecedor.");
     }
   }
 
   return (
     <PageShell
       title="Cadastro de Fornecedores"
-      subtitle="Gestao de parceiros e contatos comerciais."
+      subtitle="Gestão de parceiros e contatos comerciais."
       actions={
         <Button onClick={startCreate}>
           Novo fornecedor
@@ -145,8 +145,8 @@ export default function FornecedoresPage() {
                   <TableHead>Documento</TableHead>
                   <TableHead>Contato</TableHead>
                   <TableHead>Telefone</TableHead>
-                  <TableHead>Observacoes</TableHead>
-                  <TableHead className="pr-0">Acoes</TableHead>
+                  <TableHead>Observações</TableHead>
+                  <TableHead className="pr-0">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -215,36 +215,36 @@ export default function FornecedoresPage() {
       >
         {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
         <form className="mt-4 space-y-3" onSubmit={onSubmit}>
-            <Input
-              value={form.nomeFantasia}
-              placeholder="Nome fantasia"
-              onChange={(event) => setForm((prev) => ({ ...prev, nomeFantasia: event.target.value }))}
-            />
-            <Input
-              value={form.documento}
-              placeholder="CNPJ ou CPF"
-              onChange={(event) => setForm((prev) => ({ ...prev, documento: event.target.value }))}
-            />
-            <Input
-              value={form.contato}
-              placeholder="Contato"
-              onChange={(event) => setForm((prev) => ({ ...prev, contato: event.target.value }))}
-            />
-            <Input
-              value={form.telefone}
-              placeholder="Telefone"
-              onChange={(event) => setForm((prev) => ({ ...prev, telefone: event.target.value }))}
-            />
-            <Textarea
-              className="min-h-24"
-              value={form.observacoes}
-              placeholder="Observacoes"
-              onChange={(event) => setForm((prev) => ({ ...prev, observacoes: event.target.value }))}
-            />
-            <Button className="w-full" type="submit">
-              {editingSupplierId ? "Salvar alteracoes" : "Cadastrar fornecedor"}
-            </Button>
-          </form>
+          <Input
+            value={form.nomeFantasia}
+            placeholder="Nome fantasia"
+            onChange={(event) => setForm((prev) => ({ ...prev, nomeFantasia: event.target.value }))}
+          />
+          <Input
+            value={form.documento}
+            placeholder="CNPJ ou CPF"
+            onChange={(event) => setForm((prev) => ({ ...prev, documento: event.target.value }))}
+          />
+          <Input
+            value={form.contato}
+            placeholder="Contato"
+            onChange={(event) => setForm((prev) => ({ ...prev, contato: event.target.value }))}
+          />
+          <Input
+            value={form.telefone}
+            placeholder="Telefone"
+            onChange={(event) => setForm((prev) => ({ ...prev, telefone: event.target.value }))}
+          />
+          <Textarea
+            className="min-h-24"
+            value={form.observacoes}
+            placeholder="Observações"
+            onChange={(event) => setForm((prev) => ({ ...prev, observacoes: event.target.value }))}
+          />
+          <Button className="w-full" type="submit">
+            {editingSupplierId ? "Salvar alterações" : "Cadastrar fornecedor"}
+          </Button>
+        </form>
       </Modal>
     </PageShell>
   );

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { defaultStockMovements } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
 import { isDatabaseUnavailableError } from "@/lib/db-error";
 
@@ -13,7 +12,10 @@ const movementSchema = z.object({
 
 export async function GET() {
   if (!process.env.DATABASE_URL) {
-    return NextResponse.json(defaultStockMovements);
+    return NextResponse.json(
+      { message: "Banco nao configurado. Defina DATABASE_URL para leitura e escrita." },
+      { status: 503 },
+    );
   }
 
   try {
@@ -33,7 +35,7 @@ export async function GET() {
     );
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      return NextResponse.json(defaultStockMovements);
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao carregar movimentacoes" }, { status: 500 });

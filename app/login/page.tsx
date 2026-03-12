@@ -38,7 +38,7 @@ export default function LoginPage() {
       router.push(nextPath);
       router.refresh();
     } catch {
-      setMessage("Erro de conexao ao autenticar.");
+      setMessage("Erro de conexão ao autenticar.");
     } finally {
       setLoading(false);
     }

@@ -81,7 +81,7 @@ export default function InsumosPage() {
       setInventory((prev) => prev.filter((entry) => entry.id !== id));
       setMessage("Insumo removido com sucesso.");
     } catch {
-      setMessage("Erro de conexao ao remover insumo.");
+      setMessage("Erro de conexão ao remover insumo.");
     }
   }
 
@@ -134,14 +134,14 @@ export default function InsumosPage() {
       resetForm();
       setIsModalOpen(false);
     } catch {
-      setMessage("Erro de conexao ao salvar insumo.");
+      setMessage("Erro de conexão ao salvar insumo.");
     }
   }
 
   return (
     <PageShell
       title="Cadastro de Insumos"
-      subtitle="Gestao completa dos itens de estoque do sushi bar."
+      subtitle="Gestão completa dos itens de estoque do sushi bar."
       actions={
         <Button onClick={startCreate}>
           Novo insumo
@@ -162,10 +162,10 @@ export default function InsumosPage() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Estoque</TableHead>
-                  <TableHead>Minimo</TableHead>
+                  <TableHead>Índice mínimo</TableHead>
                   <TableHead>Custo</TableHead>
                   <TableHead>Fornecedor</TableHead>
-                  <TableHead className="pr-0">Acoes</TableHead>
+                  <TableHead className="pr-0">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -242,74 +242,74 @@ export default function InsumosPage() {
       >
         {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
         <form className="mt-4 space-y-3" onSubmit={onSubmit}>
-            <Input
-              placeholder="Nome do insumo"
-              value={form.nome}
-              onChange={(event) => setForm((prev) => ({ ...prev, nome: event.target.value }))}
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <Select
-                value={form.categoria}
-                onChange={(event) => setForm((prev) => ({ ...prev, categoria: event.target.value as InventoryCategory }))}
-              >
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </Select>
-              <Select
-                value={form.unidade}
-                onChange={(event) => setForm((prev) => ({ ...prev, unidade: event.target.value as UnitType }))}
-              >
-                {units.map((unit) => (
-                  <option key={unit} value={unit}>
-                    {unit}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.estoqueAtual}
-                onChange={(event) => setForm((prev) => ({ ...prev, estoqueAtual: event.target.value }))}
-                placeholder="Atual"
-              />
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.estoqueMinimo}
-                onChange={(event) => setForm((prev) => ({ ...prev, estoqueMinimo: event.target.value }))}
-                placeholder="Minimo"
-              />
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.custoUnitario}
-                onChange={(event) => setForm((prev) => ({ ...prev, custoUnitario: event.target.value }))}
-                placeholder="Custo"
-              />
-            </div>
+          <Input
+            placeholder="Nome do insumo"
+            value={form.nome}
+            onChange={(event) => setForm((prev) => ({ ...prev, nome: event.target.value }))}
+          />
+          <div className="grid grid-cols-2 gap-3">
             <Select
-              value={form.fornecedorId}
-              onChange={(event) => setForm((prev) => ({ ...prev, fornecedorId: event.target.value }))}
+              value={form.categoria}
+              onChange={(event) => setForm((prev) => ({ ...prev, categoria: event.target.value as InventoryCategory }))}
             >
-              <option value="">Selecione fornecedor</option>
-              {suppliers.map((supplier) => (
-                <option key={supplier.id} value={supplier.id}>
-                  {supplier.nomeFantasia}
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
                 </option>
               ))}
             </Select>
-            <Button className="w-full" type="submit">
-              {editingItemId ? "Salvar alteracoes" : "Cadastrar insumo"}
-            </Button>
-          </form>
+            <Select
+              value={form.unidade}
+              onChange={(event) => setForm((prev) => ({ ...prev, unidade: event.target.value as UnitType }))}
+            >
+              {units.map((unit) => (
+                <option key={unit} value={unit}>
+                  {unit}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.estoqueAtual}
+              onChange={(event) => setForm((prev) => ({ ...prev, estoqueAtual: event.target.value }))}
+              placeholder="Atual"
+            />
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.estoqueMinimo}
+              onChange={(event) => setForm((prev) => ({ ...prev, estoqueMinimo: event.target.value }))}
+              placeholder="Minimo"
+            />
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.custoUnitario}
+              onChange={(event) => setForm((prev) => ({ ...prev, custoUnitario: event.target.value }))}
+              placeholder="Custo"
+            />
+          </div>
+          <Select
+            value={form.fornecedorId}
+            onChange={(event) => setForm((prev) => ({ ...prev, fornecedorId: event.target.value }))}
+          >
+            <option value="">Selecione fornecedor</option>
+            {suppliers.map((supplier) => (
+              <option key={supplier.id} value={supplier.id}>
+                {supplier.nomeFantasia}
+              </option>
+            ))}
+          </Select>
+          <Button className="w-full" type="submit">
+            {editingItemId ? "Salvar alteracoes" : "Cadastrar insumo"}
+          </Button>
+        </form>
       </Modal>
     </PageShell>
   );

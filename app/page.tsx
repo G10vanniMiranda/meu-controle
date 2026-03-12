@@ -61,7 +61,7 @@ export default function DashboardPage() {
   return (
     <PageShell
       title="Dashboard"
-      subtitle="Visao executiva da operacao do sushi bar com estoque, contas e fluxo de caixa."
+      subtitle="Visão executiva da operação do sushi bar com estoque, contas e fluxo de caixa."
     >
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
@@ -112,7 +112,7 @@ export default function DashboardPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-b border-blue-900/60 text-blue-200">
-                    <TableHead>Descricao</TableHead>
+                    <TableHead>Descrição</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Parceiro</TableHead>
                     <TableHead>Vencimento</TableHead>
@@ -143,7 +143,7 @@ export default function DashboardPage() {
 
         <Card>
           <CardContent className="p-6 md:p-7">
-            <h3 className="text-lg font-semibold text-yellow-300">Ultimas movimentacoes</h3>
+            <h3 className="text-lg font-semibold text-yellow-300">Últimas movimentações</h3>
             <ul className="mt-5 space-y-3">
               {movements.slice(0, 5).map((movement) => {
                 const item = inventory.find((entry) => entry.id === movement.itemId);

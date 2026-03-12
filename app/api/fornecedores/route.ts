@@ -1,20 +1,22 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { defaultSuppliers } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
 import { isDatabaseUnavailableError } from "@/lib/db-error";
 
 const supplierSchema = z.object({
   nomeFantasia: z.string().trim().min(1, "nomeFantasia e obrigatorio"),
   documento: z.string().trim().min(1, "documento e obrigatorio"),
-  contato: z.string().trim().min(1).default("Nao informado"),
-  telefone: z.string().trim().min(1).default("Nao informado"),
+  contato: z.string().trim().min(1).default("nao informado"),
+  telefone: z.string().trim().min(1).default("nao informado"),
   observacoes: z.string().trim().optional(),
 });
 
 export async function GET() {
   if (!process.env.DATABASE_URL) {
-    return NextResponse.json(defaultSuppliers);
+    return NextResponse.json(
+      { message: "Banco nao configurado. Defina DATABASE_URL para leitura e escrita." },
+      { status: 503 },
+    );
   }
 
   try {
@@ -25,7 +27,7 @@ export async function GET() {
     return NextResponse.json(suppliers);
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      return NextResponse.json(defaultSuppliers);
+      return NextResponse.json({ message: "Banco indisponivel no momento." }, { status: 503 });
     }
 
     return NextResponse.json({ message: "Erro ao carregar fornecedores" }, { status: 500 });
