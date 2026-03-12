@@ -13,6 +13,7 @@ const navItems = [
   { href: "/insumos", label: "Insumos" },
   { href: "/fornecedores", label: "Fornecedores" },
   { href: "/movimentacoes", label: "Movimentacoes" },
+  { href: "/caixa", label: "Caixa" },
   { href: "/contas", label: "Contas" },
 ];
 

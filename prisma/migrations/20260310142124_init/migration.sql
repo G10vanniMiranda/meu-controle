@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "InventoryCategory" AS ENUM ('peixe', 'arroz', 'embalagem', 'bebida', 'tempero', 'outros');
 
 -- CreateEnum

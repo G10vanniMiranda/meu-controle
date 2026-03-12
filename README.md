@@ -19,10 +19,20 @@ npm run dev
 
 Aplicacao em: `http://localhost:3000`
 
-## Banco de dados (Prisma + PostgreSQL)
+## Banco de dados (Prisma + PostgreSQL / Neon)
 
 1. Crie um arquivo `.env` com base em `.env.example`.
-2. Suba um PostgreSQL local e ajuste `DATABASE_URL`.
+2. Configure as variaveis de conexao.
+   
+Para Neon, use:
+
+```bash
+DATABASE_URL="postgresql://USER:PASSWORD@EP-XXXX-XXXX-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&pgbouncer=true&connect_timeout=15"
+DIRECT_URL="postgresql://USER:PASSWORD@EP-XXXX-XXXX.us-east-2.aws.neon.tech/neondb?sslmode=require"
+```
+
+- `DATABASE_URL`: URL com `-pooler` (runtime da aplicacao).
+- `DIRECT_URL`: URL sem `-pooler` (migrations do Prisma).
 3. Gere o client Prisma:
 
 ```bash
