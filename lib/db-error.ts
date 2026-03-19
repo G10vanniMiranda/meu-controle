@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma";
 
 export function isDatabaseUnavailableError(error: unknown) {
   if (error instanceof Prisma.PrismaClientInitializationError) {

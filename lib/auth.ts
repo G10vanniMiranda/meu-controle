@@ -1,17 +1,19 @@
+import { prisma } from "@/lib/prisma";
+
 export const AUTH_COOKIE_NAME = "sushiflow_session";
 
 const PBKDF2_ALGO = "pbkdf2_sha256";
 const PBKDF2_ITERATIONS = 210000;
 const PBKDF2_HASH_BYTES = 32;
 
-type AuthConfig = {
+type LegacyAuthConfig = {
   email: string;
   secret: string;
   password?: string;
   passwordHash?: string;
 };
 
-function getAuthConfig() {
+function getLegacyAuthConfig() {
   const email = process.env.APP_ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.APP_ADMIN_PASSWORD;
   const passwordHash = process.env.APP_ADMIN_PASSWORD_HASH;
@@ -21,7 +23,11 @@ function getAuthConfig() {
     return null;
   }
 
-  return { email, password, passwordHash, secret } satisfies AuthConfig;
+  return { email, password, passwordHash, secret } satisfies LegacyAuthConfig;
+}
+
+function getAuthSecret() {
+  return process.env.APP_AUTH_SECRET ?? null;
 }
 
 function toHex(buffer: ArrayBuffer) {
@@ -90,17 +96,13 @@ function safeEqual(a: string, b: string) {
   return result === 0;
 }
 
-export function isAuthConfigured() {
-  return getAuthConfig() !== null;
-}
-
 export async function createPasswordHash(password: string) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const hash = await derivePbkdf2Hash(password, salt.buffer, PBKDF2_ITERATIONS);
   return `${PBKDF2_ALGO}$${PBKDF2_ITERATIONS}$${toHex(salt.buffer)}$${hash}`;
 }
 
-async function isValidPasswordHash(inputPassword: string, encodedHash: string) {
+export async function isValidPasswordHash(inputPassword: string, encodedHash: string) {
   const parts = encodedHash.split("$");
   if (parts.length !== 4) {
     return false;
@@ -126,55 +128,174 @@ async function isValidPasswordHash(inputPassword: string, encodedHash: string) {
   return safeEqual(inputHash, hashHex);
 }
 
-export async function isValidAdminPassword(inputPassword: string) {
-  const config = getAuthConfig();
-  if (!config) return false;
-
-  if (config.passwordHash) {
-    return isValidPasswordHash(inputPassword, config.passwordHash);
+async function findTeamMemberByEmail(email: string) {
+  if (!process.env.DATABASE_URL) {
+    return null;
   }
 
-  if (!config.password) {
+  try {
+    return await prisma.teamMember.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        passwordHash: true,
+        status: true,
+      },
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function findTeamMemberById(id: string) {
+  if (!process.env.DATABASE_URL) {
+    return null;
+  }
+
+  try {
+    return await prisma.teamMember.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        passwordHash: true,
+        status: true,
+      },
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function hasDatabaseAuthUsers() {
+  if (!process.env.DATABASE_URL) {
     return false;
   }
 
-  const expectedDigest = await digestValue(config.password, config.secret);
-  const inputDigest = await digestValue(inputPassword, config.secret);
-  return safeEqual(inputDigest, expectedDigest);
-}
+  try {
+    const count = await prisma.teamMember.count({
+      where: {
+        status: "ativo",
+        passwordHash: { not: null },
+      },
+    });
 
-export async function isValidAdminCredentials(inputEmail: string, inputPassword: string) {
-  const config = getAuthConfig();
-  if (!config) return false;
-
-  const normalizedEmail = inputEmail.trim().toLowerCase();
-  if (!safeEqual(normalizedEmail, config.email)) {
+    return count > 0;
+  } catch {
     return false;
   }
-
-  return isValidAdminPassword(inputPassword);
 }
 
-export async function createSessionToken() {
-  const config = getAuthConfig();
-  if (!config) return null;
-
+async function createLegacySessionTokenFromConfig(config: LegacyAuthConfig) {
   if (config.passwordHash) {
-    return digestValue(config.passwordHash, config.secret);
+    return `legacy:${await digestValue(config.passwordHash, config.secret)}`;
   }
 
   if (!config.password) {
     return null;
   }
 
-  return digestValue(config.password, config.secret);
+  return `legacy:${await digestValue(config.password, config.secret)}`;
+}
+
+async function createDatabaseSessionToken(user: { id: string; passwordHash: string }) {
+  const secret = getAuthSecret();
+  if (!secret) return null;
+
+  const signature = await digestValue(`${user.id}:${user.passwordHash}`, secret);
+  return `user:${user.id}:${signature}`;
+}
+
+export async function isAuthConfigured() {
+  if (getLegacyAuthConfig()) {
+    return true;
+  }
+
+  return hasDatabaseAuthUsers();
+}
+
+export async function authenticateUser(inputEmail: string, inputPassword: string) {
+  const normalizedEmail = inputEmail.trim().toLowerCase();
+  const teamMember = await findTeamMemberByEmail(normalizedEmail);
+
+  if (teamMember && teamMember.status === "ativo" && teamMember.passwordHash) {
+    const valid = await isValidPasswordHash(inputPassword, teamMember.passwordHash);
+    if (valid) {
+      const sessionToken = await createDatabaseSessionToken({
+        id: teamMember.id,
+        passwordHash: teamMember.passwordHash,
+      });
+
+      if (sessionToken) {
+        return { sessionToken, source: "database" as const, userId: teamMember.id };
+      }
+    }
+  }
+
+  const legacyConfig = getLegacyAuthConfig();
+  if (!legacyConfig) {
+    return null;
+  }
+
+  if (!safeEqual(normalizedEmail, legacyConfig.email)) {
+    return null;
+  }
+
+  if (legacyConfig.passwordHash) {
+    const valid = await isValidPasswordHash(inputPassword, legacyConfig.passwordHash);
+    if (!valid) return null;
+  } else {
+    if (!legacyConfig.password) {
+      return null;
+    }
+
+    const expectedDigest = await digestValue(legacyConfig.password, legacyConfig.secret);
+    const inputDigest = await digestValue(inputPassword, legacyConfig.secret);
+    if (!safeEqual(inputDigest, expectedDigest)) {
+      return null;
+    }
+  }
+
+  const sessionToken = await createLegacySessionTokenFromConfig(legacyConfig);
+  if (!sessionToken) {
+    return null;
+  }
+
+  return { sessionToken, source: "legacy" as const };
 }
 
 export async function isValidSessionToken(token: string | undefined) {
   if (!token) return false;
 
-  const expectedToken = await createSessionToken();
-  if (!expectedToken) return false;
+  if (token.startsWith("user:")) {
+    const [prefix, userId, signature] = token.split(":");
+    if (prefix !== "user" || !userId || !signature) {
+      return false;
+    }
 
-  return safeEqual(token, expectedToken);
+    const teamMember = await findTeamMemberById(userId);
+    if (!teamMember || teamMember.status !== "ativo" || !teamMember.passwordHash) {
+      return false;
+    }
+
+    const expectedToken = await createDatabaseSessionToken({
+      id: teamMember.id,
+      passwordHash: teamMember.passwordHash,
+    });
+
+    return expectedToken ? safeEqual(token, expectedToken) : false;
+  }
+
+  if (token.startsWith("legacy:")) {
+    const legacyConfig = getLegacyAuthConfig();
+    if (!legacyConfig) {
+      return false;
+    }
+
+    const expectedToken = await createLegacySessionTokenFromConfig(legacyConfig);
+    return expectedToken ? safeEqual(token, expectedToken) : false;
+  }
+
+  return false;
 }

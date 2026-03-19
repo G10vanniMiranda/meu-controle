@@ -1,21 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import {
-  AUTH_COOKIE_NAME,
-  createSessionToken,
-  isAuthConfigured,
-  isValidAdminCredentials,
-} from "@/lib/auth";
+import { AUTH_COOKIE_NAME, authenticateUser, isAuthConfigured } from "@/lib/auth";
 
 const loginSchema = z.object({
-  email: z.string().trim().email("email inválido"),
-  password: z.string().min(1, "senha obrigatória"),
+  email: z.string().trim().email("email invalido"),
+  password: z.string().min(1, "senha obrigatoria"),
 });
 
 export async function POST(request: Request) {
-  if (!isAuthConfigured()) {
+  if (!(await isAuthConfigured())) {
     return NextResponse.json(
-      { message: "Autenticação não configurada no ambiente." },
+      { message: "Autenticacao nao configurada no ambiente." },
       { status: 503 },
     );
   }
@@ -23,23 +18,16 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const parsed = loginSchema.parse(body);
+    const authResult = await authenticateUser(parsed.email, parsed.password);
 
-    if (!(await isValidAdminCredentials(parsed.email, parsed.password))) {
-      return NextResponse.json({ message: "Email ou senha inválidos." }, { status: 401 });
-    }
-
-    const sessionToken = await createSessionToken();
-    if (!sessionToken) {
-      return NextResponse.json(
-        { message: "Falha ao criar sessão de autenticação." },
-        { status: 500 },
-      );
+    if (!authResult) {
+      return NextResponse.json({ message: "Email ou senha invalidos." }, { status: 401 });
     }
 
     const response = NextResponse.json({ ok: true });
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
-      value: sessionToken,
+      value: authResult.sessionToken,
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
@@ -51,7 +39,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { message: "Dados inválidos", issues: error.flatten() },
+        { message: "Dados invalidos", issues: error.flatten() },
         { status: 400 },
       );
     }

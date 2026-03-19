@@ -60,3 +60,20 @@ export type CashFlowEntry = {
   descricao: string;
   valor: number;
 };
+
+export type TeamUserRole = "admin" | "gerente" | "financeiro" | "estoque" | "atendimento" | "cozinha";
+
+export type TeamUserStatus = "ativo" | "inativo" | "ferias";
+
+export type TeamUser = {
+  id: string;
+  nome: string;
+  email: string;
+  telefone?: string;
+  cargo: string;
+  role: TeamUserRole;
+  status: TeamUserStatus;
+  hasPassword: boolean;
+  observacoes?: string;
+  createdAt: string;
+};

@@ -12,9 +12,10 @@ const navItems = [
   { href: "/", label: "Dashboard" },
   { href: "/insumos", label: "Insumos" },
   { href: "/fornecedores", label: "Fornecedores" },
-  { href: "/movimentacoes", label: "Movimentações" },
+  { href: "/movimentacoes", label: "Movimentacoes" },
   { href: "/caixa", label: "Caixa" },
   { href: "/contas", label: "Contas" },
+  { href: "/usuarios", label: "Usuarios" },
 ];
 
 export function SidebarNav() {
@@ -36,7 +37,7 @@ export function SidebarNav() {
     <>
       <div className="lg:hidden">
         <Button variant="outline" className="w-full justify-between" onClick={() => setOpen((prev) => !prev)}>
-          Menu de navegação
+          Menu de navegacao
           <span>{open ? "Fechar" : "Abrir"}</span>
         </Button>
       </div>
@@ -54,7 +55,7 @@ export function SidebarNav() {
                 <Badge variant="warning">Pro</Badge>
               </div>
               <h1 className="mt-1 text-xl font-semibold text-yellow-300">ERP Profissional</h1>
-              <p className="mt-2 text-sm text-blue-100/80">Operação, estoque e financeiro em um painel.</p>
+              <p className="mt-2 text-sm text-blue-100/80">Operacao, estoque e financeiro em um painel.</p>
             </div>
 
             <nav className="space-y-2">
@@ -89,4 +90,3 @@ export function SidebarNav() {
     </>
   );
 }
-

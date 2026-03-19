@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!isAuthConfigured()) {
+  if (!(await isAuthConfigured())) {
     if (pathname === "/login") {
       return NextResponse.next();
     }

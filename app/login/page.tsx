@@ -38,7 +38,7 @@ export default function LoginPage() {
       router.push(nextPath);
       router.refresh();
     } catch {
-      setMessage("Erro de conexão ao autenticar.");
+      setMessage("Erro de conexao ao autenticar.");
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md border-blue-900/70 bg-zinc-800/90 shadow-[0_20px_60px_rgba(2,6,23,0.5)] backdrop-blur">
         <CardHeader className="space-y-2">
           <CardTitle>Entrar no Mahal ERP</CardTitle>
-          <p className="text-sm text-blue-100/80">Acesse com suas credenciais de administrador.</p>
+          <p className="text-sm text-blue-100/80">Acesse com o email e a senha cadastrados para seu usuario.</p>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={onSubmit}>
@@ -58,7 +58,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@mahalsushi.com"
+                placeholder="usuario@mahalsushi.com"
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
