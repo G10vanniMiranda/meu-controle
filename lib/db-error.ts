@@ -1,11 +1,12 @@
-import { Prisma } from "@/generated/prisma";
-
 export function isDatabaseUnavailableError(error: unknown) {
-  if (error instanceof Prisma.PrismaClientInitializationError) {
+  if (
+    error instanceof Error &&
+    error.name === "PrismaClientInitializationError"
+  ) {
     return true;
   }
 
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P1001") {
+  if (hasPrismaErrorCode(error, "P1001")) {
     return true;
   }
 
@@ -17,9 +18,21 @@ export function isDatabaseUnavailableError(error: unknown) {
 }
 
 export function getDatabaseErrorCode(error: unknown) {
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    return error.code;
+  return hasPrismaErrorCode(error) ? error.code : null;
+}
+
+function hasPrismaErrorCode(
+  error: unknown,
+  expectedCode?: string,
+): error is { code: string } {
+  if (!error || typeof error !== "object" || !("code" in error)) {
+    return false;
   }
 
-  return null;
+  const { code } = error as { code?: unknown };
+  if (typeof code !== "string") {
+    return false;
+  }
+
+  return expectedCode ? code === expectedCode : true;
 }

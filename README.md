@@ -9,6 +9,7 @@ Sistema web para controle de estoque, fornecedores, contas e movimentacoes do Ma
 - TypeScript
 - Tailwind CSS 4
 - API routes com Next.js + Prisma (PostgreSQL)
+- Autenticacao com sessao HTTP-only e usuarios no banco
 
 ## Como executar
 
@@ -39,7 +40,7 @@ DIRECT_URL="postgresql://USER:PASSWORD@EP-XXXX-XXXX.us-east-2.aws.neon.tech/neon
 npm run prisma:generate
 ```
 
-4. Aplique a migration inicial quando ela for criada:
+4. Aplique as migrations em desenvolvimento:
 
 ```bash
 npm run prisma:migrate:dev
@@ -76,6 +77,7 @@ npm run auth:hash -- "sua-senha-forte"
 - A tela de login fica em `/login`.
 - As rotas de app e `/api/*` exigem sessao autenticada.
 - O cookie de sessao e HTTP-only e expira em 12 horas.
+- Usuarios tambem podem autenticar via tabela `TeamMember`, com senha em hash PBKDF2.
 
 ## Scripts
 
@@ -90,6 +92,18 @@ npm run auth:hash -- "sua-senha-forte"
 
 ## Status do projeto
 
-O sistema ja possui backend (API + Prisma) e dashboard funcional, mas ainda faltam autenticacao, testes automatizados e esteira de CI para producao.
+O sistema ja possui:
+
+- backend com API routes para insumos, fornecedores, contas, movimentacoes, fluxo de caixa e usuarios;
+- banco relacional com Prisma e migrations versionadas;
+- autenticacao com protecao de rotas e login;
+- dashboard e modulos operacionais funcionando sobre dados persistidos.
+
+Pendencias principais:
+
+- testes automatizados;
+- CI basico para lint e build;
+- mais regras de negocio para consistencia financeira e de estoque;
+- evolucao de CRUD, filtros e auditoria.
 
 Plano de evolucao: [ROADMAP.md](./ROADMAP.md)

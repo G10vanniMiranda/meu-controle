@@ -6,11 +6,11 @@ Este documento organiza a evolucao do projeto em fases para sair de MVP local e 
 
 Objetivo: garantir base tecnica minima para deploy confiavel.
 
-- [ ] Substituir dados em `localStorage` por banco relacional (PostgreSQL + Prisma).
-- [ ] Criar API routes (`app/api/*`) para insumos, fornecedores, contas e movimentacoes.
-- [ ] Padronizar validacoes de entrada com schema (Zod) no backend.
-- [ ] Implementar migration inicial e seed de dados.
-- [ ] Configurar ambiente com `.env.example`.
+- [x] Substituir dados em `localStorage` por banco relacional (PostgreSQL + Prisma).
+- [x] Criar API routes (`app/api/*`) para insumos, fornecedores, contas, movimentacoes, fluxo de caixa e usuarios.
+- [x] Padronizar validacoes de entrada com schema (Zod) no backend.
+- [x] Implementar migration inicial e seed de dados.
+- [x] Configurar ambiente com `.env.example`.
 - [ ] Adicionar CI basico (lint + build + testes).
 
 ## Fase 2 - Regra de Negocio e Consistencia
@@ -18,7 +18,7 @@ Objetivo: garantir base tecnica minima para deploy confiavel.
 Objetivo: garantir que os modulos conversem entre si sem divergencia de dados.
 
 - [ ] Gerar fluxo de caixa automaticamente a partir de eventos de contas/movimentacoes.
-- [ ] Implementar transacoes para atualizar estoque e historico de movimentacao de forma atomica.
+- [x] Implementar transacoes para atualizar estoque e historico de movimentacao de forma atomica.
 - [ ] Criar status automatico de contas por vencimento (aberta/atrasada/paga).
 - [ ] Bloquear inconsistencias (ex.: saida sem saldo, fornecedor removido com insumo ativo).
 
@@ -36,8 +36,8 @@ Objetivo: tornar o sistema utilizavel no dia a dia.
 
 Objetivo: suportar uso multiusuario com controle de permissao.
 
-- [ ] Implementar autenticacao (NextAuth/Auth.js ou equivalente).
-- [ ] Definir papeis: admin, financeiro, estoque.
+- [x] Implementar autenticacao com login, cookie de sessao e protecao de rotas.
+- [x] Definir papeis de usuario no modelo (`admin`, `gerente`, `financeiro`, `estoque`, `atendimento`, `cozinha`).
 - [ ] Isolar dados por organizacao/unidade (multi-tenant simples).
 - [ ] Registrar log de acesso e acao critica.
 
@@ -55,7 +55,7 @@ Objetivo: reduzir regressao e melhorar manutencao.
 
 ## Entrega sugerida por sprint
 
-- Sprint 1: Fase 1 (infra + API base + migration inicial).
+- Sprint 1: Fase 1 concluida, com foco em CI basico.
 - Sprint 2: Fase 2 (consistencia financeira/estoque).
 - Sprint 3: Fase 3 (CRUD completo + filtros).
-- Sprint 4: Fases 4 e 5 iniciais (auth + testes de regressao + observabilidade).
+- Sprint 4: Fases 4 e 5 restantes (auditoria, multi-tenant, testes e observabilidade).
