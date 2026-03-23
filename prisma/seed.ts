@@ -1,7 +1,19 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const { PrismaClient } = require("@prisma/client");
+import "dotenv/config";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../generated/db/client";
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error("Defina DIRECT_URL ou DATABASE_URL antes de executar o seed.");
+}
+
+const adapter = new PrismaPg({
+  connectionString,
+  connectionTimeoutMillis: 15_000,
+});
+
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   await prisma.cashFlowEntry.deleteMany();

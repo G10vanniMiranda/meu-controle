@@ -8,7 +8,7 @@ Sistema web para controle de estoque, fornecedores, contas e movimentacoes do Ma
 - React 19
 - TypeScript
 - Tailwind CSS 4
-- API routes com Next.js + Prisma (PostgreSQL)
+- API routes com Next.js + Prisma 7 (PostgreSQL)
 - Autenticacao com sessao HTTP-only e usuarios no banco
 
 ## Como executar
@@ -28,19 +28,23 @@ Aplicacao em: `http://localhost:3000`
 Para Neon, use:
 
 ```bash
-DATABASE_URL="postgresql://USER:PASSWORD@EP-XXXX-XXXX-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&pgbouncer=true&connect_timeout=15"
-DIRECT_URL="postgresql://USER:PASSWORD@EP-XXXX-XXXX.us-east-2.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL="postgresql://USER:PASSWORD@EP-XXXX-XXXX-pooler.us-east-2.aws.neon.tech/neondb?sslmode=verify-full&pgbouncer=true&connect_timeout=15"
+DIRECT_URL="postgresql://USER:PASSWORD@EP-XXXX-XXXX.us-east-2.aws.neon.tech/neondb?sslmode=verify-full"
 ```
 
 - `DATABASE_URL`: URL com `-pooler` (runtime da aplicacao).
 - `DIRECT_URL`: URL sem `-pooler` (migrations do Prisma).
-3. Gere o client Prisma:
+3. O projeto usa `prisma.config.ts` para schema, datasource e seed.
+
+4. Gere o client Prisma:
 
 ```bash
 npm run prisma:generate
 ```
 
-4. Aplique as migrations em desenvolvimento:
+O client e gerado em `generated/db`.
+
+5. Aplique as migrations em desenvolvimento:
 
 ```bash
 npm run prisma:migrate:dev
@@ -52,7 +56,7 @@ Para aplicar migrations em producao (sem criar novas):
 npm run prisma:migrate:deploy
 ```
 
-5. Popule o banco com dados iniciais:
+6. Popule o banco com dados iniciais:
 
 ```bash
 npm run prisma:seed
@@ -88,14 +92,14 @@ npm run auth:hash -- "sua-senha-forte"
 - `npm run prisma:generate`: gera Prisma Client
 - `npm run prisma:migrate:dev`: roda migrations em ambiente de desenvolvimento
 - `npm run prisma:migrate:deploy`: aplica migrations pendentes em producao
-- `npm run prisma:seed`: popula o banco com dados iniciais para desenvolvimento
+- `npm run prisma:seed`: popula o banco com dados iniciais via `tsx prisma/seed.ts`
 
 ## Status do projeto
 
 O sistema ja possui:
 
 - backend com API routes para insumos, fornecedores, contas, movimentacoes, fluxo de caixa e usuarios;
-- banco relacional com Prisma e migrations versionadas;
+- banco relacional com Prisma 7, `prisma.config.ts` e migrations versionadas;
 - autenticacao com protecao de rotas e login;
 - dashboard e modulos operacionais funcionando sobre dados persistidos.
 
