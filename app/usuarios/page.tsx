@@ -281,10 +281,12 @@ export default function UsuariosPage() {
                     <TableCell className="pr-0">
                       <div className="flex items-center gap-2">
                         <Button type="button" size="sm" variant="ghost" onClick={() => startEdit(user)}>
-                          Editar
+                          <span aria-hidden="true">??</span>
+                          <span className="sr-only">Editar</span>
                         </Button>
                         <Button type="button" size="sm" variant="ghost" onClick={() => onDelete(user.id)}>
-                          Excluir
+                          <span aria-hidden="true">???</span>
+                          <span className="sr-only">Excluir</span>
                         </Button>
                       </div>
                     </TableCell>
@@ -376,5 +378,6 @@ export default function UsuariosPage() {
     </PageShell>
   );
 }
+
 
 
