@@ -3,9 +3,16 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/db/client";
 
 const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+const allowDemoSeed = process.env.ALLOW_DEMO_SEED === "true";
 
 if (!connectionString) {
   throw new Error("Defina DIRECT_URL ou DATABASE_URL antes de executar o seed.");
+}
+
+if (!allowDemoSeed) {
+  throw new Error(
+    "Seed de demonstracao bloqueado. Defina ALLOW_DEMO_SEED=true apenas quando quiser popular dados fake.",
+  );
 }
 
 const adapter = new PrismaPg({
@@ -15,12 +22,25 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
+async function ensureEmptyOperationalDatabase() {
+  const [suppliers, inventoryItems, stockMovements, accountEntries, cashFlowEntries] = await Promise.all([
+    prisma.supplier.count(),
+    prisma.inventoryItem.count(),
+    prisma.stockMovement.count(),
+    prisma.accountEntry.count(),
+    prisma.cashFlowEntry.count(),
+  ]);
+
+  const total = suppliers + inventoryItems + stockMovements + accountEntries + cashFlowEntries;
+  if (total > 0) {
+    throw new Error(
+      "Seed cancelado: o banco ja possui dados operacionais. Limpe manualmente o ambiente de desenvolvimento antes de carregar dados demo.",
+    );
+  }
+}
+
 async function main() {
-  await prisma.cashFlowEntry.deleteMany();
-  await prisma.stockMovement.deleteMany();
-  await prisma.accountEntry.deleteMany();
-  await prisma.inventoryItem.deleteMany();
-  await prisma.supplier.deleteMany();
+  await ensureEmptyOperationalDatabase();
 
   await prisma.supplier.createMany({
     data: [
@@ -217,7 +237,7 @@ async function main() {
 main()
   .then(async () => {
     await prisma.$disconnect();
-    console.log("Seed concluido.");
+    console.log("Seed de demonstracao concluido.");
   })
   .catch(async (error) => {
     console.error(error);

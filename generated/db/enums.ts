@@ -59,7 +59,8 @@ export const CashFlowCategory = {
   venda: 'venda',
   compra: 'compra',
   taxa: 'taxa',
-  despesa_fixa: 'despesa_fixa'
+  despesa_fixa: 'despesa_fixa',
+  deposito: 'deposito'
 } as const
 
 export type CashFlowCategory = (typeof CashFlowCategory)[keyof typeof CashFlowCategory]

@@ -1,6 +1,7 @@
+import type { PrismaClient } from "@/generated/db/client";
 import assert from "node:assert/strict";
 import { POST } from "@/app/api/auth/login/route";
-import { AUTH_COOKIE_NAME } from "@/lib/auth";
+import { AUTH_COOKIE_NAME, createPasswordHash } from "@/lib/auth";
 
 type TestCase = {
   name: string;
@@ -37,6 +38,8 @@ function createJsonRequest(body: unknown) {
     body: JSON.stringify(body),
   });
 }
+
+const globalForTests = global as typeof globalThis & { prisma?: PrismaClient | undefined };
 
 export const loginRouteTests: TestCase[] = [
   {
@@ -89,6 +92,51 @@ export const loginRouteTests: TestCase[] = [
     },
   },
   {
+    name: "login route sets an auth cookie for valid database credentials",
+    async run() {
+      const snapshot = snapshotEnv();
+      process.env.DATABASE_URL = "postgresql://fake";
+      process.env.APP_AUTH_SECRET = "auth-secret";
+      delete process.env.APP_ADMIN_EMAIL;
+      delete process.env.APP_ADMIN_PASSWORD;
+      delete process.env.APP_ADMIN_PASSWORD_HASH;
+
+      const passwordHash = await createPasswordHash("senha-correta");
+      globalForTests.prisma = {
+        teamMember: {
+          count: async () => 1,
+          findUnique: async ({ where }: { where: { email?: string; id?: string } }) => {
+            if (where.email === "db@example.com") {
+              return {
+                id: "user-1",
+                email: "db@example.com",
+                passwordHash,
+                status: "ativo",
+              } as never;
+            }
+
+            return null;
+          },
+        },
+      } as unknown as PrismaClient;
+
+      try {
+        const response = await POST(createJsonRequest({ email: "db@example.com", password: "senha-correta" }));
+        const body = await response.json();
+        const cookie = response.cookies.get(AUTH_COOKIE_NAME);
+
+        assert.equal(response.status, 200);
+        assert.equal(body.ok, true);
+        assert.ok(cookie);
+        assert.equal(cookie.name, AUTH_COOKIE_NAME);
+        assert.match(cookie.value, /^user:user-1:/);
+      } finally {
+        globalForTests.prisma = undefined;
+        restoreEnv(snapshot);
+      }
+    },
+  },
+  {
     name: "login route validates payload shape",
     async run() {
       const snapshot = snapshotEnv();
@@ -111,3 +159,4 @@ export const loginRouteTests: TestCase[] = [
     },
   },
 ];
+

@@ -6,7 +6,7 @@ import { isDatabaseUnavailableError } from "@/lib/db-error";
 const cashFlowSchema = z.object({
   data: z.string().trim().min(1, "data e obrigatoria"),
   tipo: z.enum(["entrada", "saida"]),
-  categoria: z.enum(["venda", "compra", "taxa", "despesa_fixa"]),
+  categoria: z.enum(["venda", "compra", "taxa", "despesa_fixa", "deposito"]),
   descricao: z.string().trim().min(1, "descricao e obrigatoria"),
   valor: z.coerce.number().gt(0),
 });
@@ -91,3 +91,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Erro ao criar lancamento de caixa" }, { status: 500 });
   }
 }
+

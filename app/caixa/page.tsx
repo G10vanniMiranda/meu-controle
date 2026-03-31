@@ -22,7 +22,7 @@ export default function CaixaPage() {
   const [form, setForm] = useState({
     data: "",
     tipo: "entrada" as MovementType,
-    categoria: "venda" as CashFlowCategory,
+    categoria: "deposito" as CashFlowCategory,
     descricao: "",
     valor: "0",
   });
@@ -48,7 +48,7 @@ export default function CaixaPage() {
         acc[entry.categoria] += entry.valor;
         return acc;
       },
-      { venda: 0, compra: 0, taxa: 0, despesa_fixa: 0 },
+      { venda: 0, compra: 0, taxa: 0, despesa_fixa: 0, deposito: 0 },
     );
 
     return [
@@ -56,6 +56,7 @@ export default function CaixaPage() {
       { label: "compra", value: data.compra, tone: "warm" as const },
       { label: "taxa", value: data.taxa, tone: "warm" as const },
       { label: "despesa fixa", value: data.despesa_fixa, tone: "warm" as const },
+      { label: "deposito", value: data.deposito, tone: "cold" as const },
     ];
   }, [cashFlow]);
 
@@ -114,7 +115,7 @@ export default function CaixaPage() {
       setForm({
         data: "",
         tipo: "entrada",
-        categoria: "venda",
+        categoria: "deposito",
         descricao: "",
         valor: "0",
       });
@@ -247,6 +248,7 @@ export default function CaixaPage() {
               <option value="compra">compra</option>
               <option value="taxa">taxa</option>
               <option value="despesa_fixa">despesa_fixa</option>
+              <option value="deposito">deposito</option>
             </Select>
           </div>
           <Input
@@ -262,3 +264,5 @@ export default function CaixaPage() {
     </PageShell>
   );
 }
+
+

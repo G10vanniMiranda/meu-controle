@@ -56,7 +56,7 @@ export type CashFlowEntry = {
   id: string;
   data: string;
   tipo: MovementType;
-  categoria: "venda" | "compra" | "taxa" | "despesa_fixa";
+  categoria: "venda" | "compra" | "taxa" | "despesa_fixa" | "deposito";
   descricao: string;
   valor: number;
 };
@@ -77,3 +77,4 @@ export type TeamUser = {
   observacoes?: string;
   createdAt: string;
 };
+

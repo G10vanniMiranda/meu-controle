@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createPasswordHash, isAuthConfigured, isValidPasswordHash } from "@/lib/auth";
+import { appRouteTests } from "./app-routes.test";
 import { loginRouteTests } from "./login-route.test";
 
 type TestCase = {
@@ -88,7 +89,7 @@ const authTests: TestCase[] = [
   },
 ];
 
-const tests = [...authTests, ...loginRouteTests];
+const tests = [...authTests, ...loginRouteTests, ...appRouteTests];
 
 async function main() {
   let failed = 0;
@@ -114,3 +115,5 @@ async function main() {
 }
 
 void main();
+
+

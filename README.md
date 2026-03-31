@@ -56,11 +56,16 @@ Para aplicar migrations em producao (sem criar novas):
 npm run prisma:migrate:deploy
 ```
 
-6. Popule o banco com dados iniciais:
+6. Popule o banco com dados de demonstracao apenas quando quiser um ambiente fake e vazio:
 
 ```bash
+$env:ALLOW_DEMO_SEED="true"
 npm run prisma:seed
 ```
+
+- O seed nao apaga mais dados existentes.
+- Se ja houver dados operacionais, o script sera interrompido.
+- Nao use essa variavel em ambiente real.
 
 ## Autenticacao basica (obrigatoria para producao)
 
@@ -92,7 +97,7 @@ npm run auth:hash -- "sua-senha-forte"
 - `npm run prisma:generate`: gera Prisma Client
 - `npm run prisma:migrate:dev`: roda migrations em ambiente de desenvolvimento
 - `npm run prisma:migrate:deploy`: aplica migrations pendentes em producao
-- `npm run prisma:seed`: popula o banco com dados iniciais via `tsx prisma/seed.ts`
+- `npm run prisma:seed`: popula dados de demonstracao apenas quando `ALLOW_DEMO_SEED=true` via `tsx prisma/seed.ts`
 
 ## Status do projeto
 
@@ -111,3 +116,4 @@ Pendencias principais:
 - evolucao de CRUD, filtros e auditoria.
 
 Plano de evolucao: [ROADMAP.md](./ROADMAP.md)
+
