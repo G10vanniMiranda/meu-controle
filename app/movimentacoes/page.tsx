@@ -35,18 +35,19 @@ export default function MovimentacoesPage() {
     event.preventDefault();
     setMessage(null);
 
-    if (!form.itemId) {
-      setMessage("Selecione um insumo.");
-      return;
-    }
-
     const quantidade = Number(form.quantidade);
     if (Number.isNaN(quantidade) || quantidade <= 0) {
       setMessage("Quantidade invalida.");
       return;
     }
 
-    const item = inventory.find((entry) => entry.id === form.itemId);
+    if (!form.itemId) {
+      setMessage("Selecione um insumo.");
+      return;
+    }
+
+    const itemId = form.itemId;
+    const item = inventory.find((entry) => entry.id === itemId);
     if (!item) {
       setMessage("Item nao encontrado.");
       return;
@@ -62,7 +63,7 @@ export default function MovimentacoesPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          itemId: form.itemId,
+          itemId,
           tipo: form.tipo,
           quantidade,
           observacao: form.observacao.trim() || undefined,
@@ -75,7 +76,7 @@ export default function MovimentacoesPage() {
       };
 
       if (!response.ok || !data.movement || !data.updatedItem) {
-        setMessage(data.message ?? "Erro ao registrar movimentação.");
+        setMessage(data.message ?? "Erro ao registrar movimentacao.");
         return;
       }
 
@@ -88,17 +89,17 @@ export default function MovimentacoesPage() {
       );
 
       setForm({ itemId: "", tipo: "entrada", quantidade: "0", observacao: "" });
-      setMessage("Movimentação registrada.");
+      setMessage("Movimentacao registrada.");
       setIsModalOpen(false);
     } catch {
-      setMessage("Erro de conexão ao registrar movimentação.");
+      setMessage("Erro de conexao ao registrar movimentacao.");
     }
   }
 
   return (
     <PageShell
-      title="Entradas e Saídas"
-      subtitle="Controle de movimentação de estoque com validação de saldo."
+      title="Entradas e Saidas"
+      subtitle="Controle de movimentacao de estoque com validacao de saldo."
       actions={
         <Button
           onClick={() => {
@@ -106,7 +107,7 @@ export default function MovimentacoesPage() {
             setIsModalOpen(true);
           }}
         >
-          Nova movimentação
+          Nova movimentacao
         </Button>
       }
     >
@@ -115,7 +116,7 @@ export default function MovimentacoesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Histórico de movimentações</CardTitle>
+          <CardTitle>Historico de movimentacoes</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -126,7 +127,7 @@ export default function MovimentacoesPage() {
                   <TableHead>Item</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Quantidade</TableHead>
-                  <TableHead>Observação</TableHead>
+                  <TableHead>Observacao</TableHead>
                   <TableHead className="pr-0">Valor aprox.</TableHead>
                 </TableRow>
               </TableHeader>
@@ -155,9 +156,12 @@ export default function MovimentacoesPage() {
 
       <Modal
         open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Nova movimentação"
-        description="Registre entradas e saídas com validação de saldo em estoque."
+        onClose={() => {
+          setIsModalOpen(false);
+          setForm({ itemId: "", tipo: "entrada", quantidade: "0", observacao: "" });
+        }}
+        title="Nova movimentacao"
+        description="Registre entradas e saidas com validacao de saldo em estoque."
       >
         {message ? <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-sm text-blue-100">{message}</p> : null}
         <form className="mt-4 space-y-3" onSubmit={onSubmit}>
@@ -172,13 +176,14 @@ export default function MovimentacoesPage() {
               </option>
             ))}
           </Select>
+
           <div className="grid grid-cols-2 gap-3">
             <Select
               value={form.tipo}
               onChange={(event) => setForm((prev) => ({ ...prev, tipo: event.target.value as MovementType }))}
             >
               <option value="entrada">entrada</option>
-              <option value="saida">saída</option>
+              <option value="saida">saida</option>
             </Select>
             <Input
               type="number"
@@ -192,7 +197,7 @@ export default function MovimentacoesPage() {
           <Textarea
             value={form.observacao}
             onChange={(event) => setForm((prev) => ({ ...prev, observacao: event.target.value }))}
-            placeholder="Observação"
+            placeholder="Observacao"
           />
           {selectedItem ? (
             <p className="rounded-lg bg-blue-950/60 px-3 py-2 text-xs text-blue-100/80">
@@ -200,7 +205,7 @@ export default function MovimentacoesPage() {
             </p>
           ) : null}
           <Button className="w-full" type="submit">
-            Registrar movimentação
+            Registrar movimentacao
           </Button>
         </form>
       </Modal>
