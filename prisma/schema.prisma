@@ -150,6 +150,3 @@ enum TeamUserStatus {
   inativo
   ferias
 }
-
-
-
